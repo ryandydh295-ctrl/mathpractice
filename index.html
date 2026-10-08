@@ -1,0 +1,3109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkVault</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI Variable','Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,'Roboto',sans-serif}
+body{min-height:100vh;overflow:hidden;background:#0b1e2b;-webkit-font-smoothing:antialiased}
+
+/* ========== LOGIN SCREEN ========== */
+#login-screen{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;padding:16px;z-index:3000;background:radial-gradient(circle at 20% 30%,#1e3a4b 0%,#0a1a24 90%)}
+#login-screen.hidden{display:none}
+.win11-card{width:100%;max-width:420px;background:rgba(32,32,32,.78);backdrop-filter:blur(30px) saturate(180%);border-radius:16px;border:1px solid rgba(255,255,255,.09);box-shadow:0 20px 60px rgba(0,0,0,.7);padding:36px 32px 32px;color:#fff}
+.win-logo{display:flex;justify-content:center;margin-bottom:24px}
+.win-logo svg{width:76px;height:76px}
+.win-title{font-size:28px;font-weight:600;text-align:center;margin-bottom:4px}
+.win-sub{text-align:center;font-size:14px;color:#a0a0a0;margin-bottom:28px}
+.tab-bar{display:flex;background:rgba(255,255,255,.05);border-radius:10px;padding:3px;margin-bottom:26px;border:1px solid rgba(255,255,255,.06)}
+.tab-btn{flex:1;background:transparent;border:none;padding:10px 8px;font-size:14px;font-weight:500;color:#b0b0b0;border-radius:7px;cursor:pointer;transition:all .15s;font-family:inherit}
+.tab-btn:hover{color:#fff;background:rgba(255,255,255,.03)}
+.tab-btn.active{background:rgba(255,255,255,.13);color:#fff}
+.panel{display:none;flex-direction:column;gap:14px;animation:fadeIn .25s ease}
+.panel.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.input-group{display:flex;flex-direction:column;gap:6px}
+.input-group label{font-size:13px;font-weight:500;color:#c0c0c0;padding-left:2px}
+.input-group label .opt{color:#777;font-weight:400;font-size:11px}
+.win-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:12px 14px;font-size:15px;color:#fff;outline:none;transition:all .15s;font-family:inherit;width:100%}
+.win-input:focus{border-color:#0078d4;background:rgba(255,255,255,.08);box-shadow:0 0 0 2px rgba(0,120,212,.3)}
+.win-input::placeholder{color:#7a7a7a}
+.win-btn{background:#0078d4;border:none;border-radius:6px;padding:12px 18px;font-size:15px;font-weight:600;color:#fff;cursor:pointer;transition:all .15s;font-family:inherit;margin-top:4px;border:1px solid rgba(255,255,255,.1)}
+.win-btn:hover{background:#1a86d9}
+.win-btn:active{background:#0067b8;transform:scale(.98)}
+.win-btn.secondary{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);color:#fff}
+.win-btn.secondary:hover{background:rgba(255,255,255,.18)}
+.win-btn.small{padding:8px 14px;font-size:13px;margin-top:0}
+.win-btn.danger{background:#c42b1c;border-color:#c42b1c}
+.win-btn.danger:hover{background:#e81123}
+.message{margin-top:14px;padding:12px 14px;border-radius:6px;font-size:14px;text-align:center;background:rgba(255,255,255,.05);border-left:4px solid #0078d4;color:#ddd}
+.message.error{border-left-color:#e74c3c;color:#ffb3b3}
+.message.success{border-left-color:#2ecc71;color:#b3ffcf}
+.message.owner{border-left-color:#f1c40f;color:#ffe484}
+.hidden-hint{opacity:.35}
+.hidden-hint:hover{opacity:.7}
+
+/* Banned screen */
+#banned-screen{position:fixed;inset:0;display:none;justify-content:center;align-items:center;padding:16px;z-index:4000;background:radial-gradient(circle at 50% 40%, #2a0a0a 0%, #0a0202 90%)}
+#banned-screen.visible{display:flex}
+.banned-card{width:100%;max-width:460px;background:rgba(40,20,20,.85);backdrop-filter:blur(30px);border-radius:16px;border:1px solid rgba(231,76,60,.4);box-shadow:0 20px 60px rgba(0,0,0,.8), 0 0 60px rgba(231,76,60,.25);padding:38px 32px;color:#fff;text-align:center}
+.banned-card .ban-icon{width:80px;height:80px;border-radius:50%;background:rgba(231,76,60,.15);border:2px solid rgba(231,76,60,.5);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.banned-card .ban-icon svg{width:44px;height:44px}
+.banned-card h1{font-size:26px;font-weight:700;color:#ff6b6b;margin-bottom:10px}
+.banned-card p{font-size:14px;color:#ccc;line-height:1.55;margin-bottom:8px}
+.banned-card .reason{background:rgba(0,0,0,.35);border-left:3px solid #e74c3c;padding:12px 16px;border-radius:6px;margin:16px 0;font-size:13.5px;color:#ffb3b3;text-align:left}
+.banned-card .banned-meta{font-size:12px;color:#888;margin-top:16px}
+
+/* ========== DESKTOP ========== */
+#desktop{position:fixed;inset:0;display:none;z-index:500}
+#desktop.visible{display:block}
+#wallpaper{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;transition:background .5s ease}
+.desktop-icons{position:absolute;top:20px;left:20px;z-index:2;display:flex;flex-direction:column;flex-wrap:wrap;gap:6px;max-height:calc(100vh - 90px);align-content:flex-start}
+.desktop-icon{display:flex;flex-direction:column;align-items:center;gap:6px;width:88px;padding:8px 4px;border-radius:6px;cursor:pointer;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);transition:background .15s;user-select:none;position:relative}
+.desktop-icon:hover{background:rgba(255,255,255,.1)}
+.desktop-icon.selected{background:rgba(0,120,212,.35);outline:1px solid rgba(0,120,212,.6)}
+.desktop-icon.dragging{opacity:.4}
+.desktop-icon .icon-img{width:48px;height:48px;border-radius:6px;object-fit:cover;pointer-events:none;display:block}
+.desktop-icon .icon-label{font-size:12px;font-weight:500;text-align:center;line-height:1.2;word-break:break-word;pointer-events:none;max-width:84px}
+
+.taskbar{position:absolute;bottom:0;left:0;right:0;height:48px;background:rgba(32,32,32,.86);backdrop-filter:blur(30px) saturate(180%);border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;z-index:800;padding:0 12px}
+.taskbar-center{display:flex;align-items:center;gap:4px}
+.taskbar-btn{width:44px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;transition:background .15s;border:none;background:transparent;color:#fff;position:relative}
+.taskbar-btn:hover{background:rgba(255,255,255,.1)}
+.taskbar-btn.active{background:rgba(255,255,255,.15)}
+.taskbar-btn.active::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:16px;height:3px;border-radius:2px;background:#0078d4}
+.taskbar-btn.minimized::after{background:#666;width:8px}
+.taskbar-btn svg{width:24px;height:24px}
+.taskbar-btn.owner-only{display:none}
+body.is-owner .taskbar-btn.owner-only{display:flex}
+.taskbar-right{position:absolute;right:12px;display:flex;align-items:center;gap:8px;color:#eee;font-size:12px}
+.taskbar-right .tray{display:flex;flex-direction:column;align-items:flex-end;gap:1px;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,.05);cursor:pointer;font-size:11.5px;line-height:1.25;text-align:right}
+.taskbar-right .tray:hover{background:rgba(255,255,255,.12)}
+.taskbar-right .tray .tray-icons{display:flex;gap:8px;margin-bottom:2px;align-self:flex-end}
+.taskbar-right .tray svg{width:14px;height:14px}
+.user-chip{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:20px;background:rgba(255,255,255,.08);cursor:pointer;transition:background .15s}
+.user-chip:hover{background:rgba(255,255,255,.16)}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#0078d4,#00bcf2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0;overflow:hidden;background-size:cover;background-position:center}
+.user-avatar img{width:100%;height:100%;object-fit:cover}
+.coin-display{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:rgba(241,196,15,.15);border:1px solid rgba(241,196,15,.35);font-size:12px;font-weight:700;color:#f1c40f}
+.coin-display svg{width:14px;height:14px}
+
+/* ========== APP WINDOW ========== */
+.app-window{position:fixed;top:80px;left:120px;width:760px;height:560px;background:rgba(32,32,32,.94);backdrop-filter:blur(30px) saturate(180%);border-radius:8px;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 70px rgba(0,0,0,.7);display:none;flex-direction:column;overflow:hidden;color:#fff;z-index:900;min-width:340px;min-height:240px}
+.app-window.visible{display:flex}
+.app-window.maximized{top:0 !important;left:0 !important;width:100vw !important;height:calc(100vh - 48px) !important;border-radius:0}
+.app-window.minimized{display:none}
+.app-titlebar{display:flex;align-items:center;justify-content:space-between;padding:0 0 0 14px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06);user-select:none;flex-shrink:0;height:38px;cursor:grab}
+.app-titlebar:active{cursor:grabbing}
+.app-titlebar-left{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:500}
+.app-titlebar-left svg,.app-titlebar-left img{width:16px;height:16px;border-radius:3px;object-fit:cover;flex-shrink:0}
+.window-controls{display:flex;height:38px}
+.window-controls button{width:46px;height:38px;border:none;background:transparent;color:#ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s;font-family:inherit}
+.window-controls button:hover{background:rgba(255,255,255,.1)}
+.window-controls button.close-btn:hover{background:#c42b1c;color:#fff}
+.window-controls button svg{width:10px;height:10px}
+.app-body{display:flex;flex:1;overflow:hidden}
+
+.settings-sidebar{width:220px;background:rgba(255,255,255,.02);border-right:1px solid rgba(255,255,255,.06);padding:14px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;flex-shrink:0}
+.settings-sidebar .sidebar-user{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:8px;border-radius:6px;background:rgba(255,255,255,.04)}
+.settings-sidebar .sidebar-user .user-avatar{width:32px;height:32px;font-size:14px}
+.settings-sidebar .sidebar-user .user-info{display:flex;flex-direction:column;overflow:hidden}
+.settings-sidebar .sidebar-user .uname{font-size:12.5px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.settings-sidebar .sidebar-user .urole{font-size:11px;color:#999}
+.sidebar-item{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px;cursor:pointer;font-size:13px;color:#ccc;transition:all .12s;border:none;background:transparent;text-align:left;width:100%;font-family:inherit;position:relative}
+.sidebar-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.sidebar-item.active{background:rgba(255,255,255,.07);color:#fff}
+.sidebar-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:16px;background:#0078d4;border-radius:2px}
+.sidebar-item svg{width:16px;height:16px;flex-shrink:0}
+
+.settings-content{flex:1;overflow-y:auto;padding:22px 26px}
+.settings-section{display:none}
+.settings-section.active{display:block;animation:fadeIn .2s ease}
+.settings-section h2{font-size:22px;font-weight:600;margin-bottom:6px}
+.settings-section .section-desc{font-size:13px;color:#999;margin-bottom:22px}
+
+/* About image */
+.about-image-wrap{margin:16px 0 18px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.2);min-height:120px;display:flex;align-items:center;justify-content:center}
+.about-image-wrap img{width:100%;height:auto;display:block}
+.about-image-placeholder{padding:30px;text-align:center;color:#777;font-size:13px}
+.about-image-placeholder svg{width:48px;height:48px;opacity:.4;margin-bottom:10px}
+
+.wallpaper-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.wallpaper-item{border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:all .15s;position:relative;aspect-ratio:16/10;background-size:cover;background-position:center;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.wallpaper-item:hover{transform:scale(1.03)}
+.wallpaper-item.selected{border-color:#0078d4;box-shadow:0 0 0 2px rgba(0,120,212,.5)}
+.wallpaper-item .wp-label{position:absolute;bottom:0;left:0;right:0;padding:5px 8px;font-size:10.5px;font-weight:500;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.75));text-align:center}
+.wallpaper-item .wp-check{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:#0078d4;display:none;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700}
+.wallpaper-item.selected .wp-check{display:flex}
+
+.custom-color-row{display:flex;align-items:center;gap:14px;margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);flex-wrap:wrap}
+.custom-color-row label{font-size:13px;color:#ccc;font-weight:500}
+.color-swatches{display:flex;gap:8px;flex-wrap:wrap}
+.color-swatch{width:32px;height:32px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.color-swatch:hover{transform:scale(1.12)}
+.color-swatch.selected{border-color:#fff;box-shadow:0 0 0 2px #0078d4}
+
+.upload-row{display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);flex-wrap:wrap}
+.upload-row label{font-size:13px;color:#ccc;font-weight:500}
+.upload-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;font-family:inherit;display:inline-flex;align-items:center;gap:8px}
+.upload-btn:hover{background:rgba(255,255,255,.15)}
+
+.profile-editor{display:flex;gap:24px;flex-wrap:wrap}
+.profile-edit-left{flex:1;min-width:260px}
+.profile-edit-right{flex:0 0 260px}
+.pfp-preview-large{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#0078d4,#00bcf2);display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:700;color:#fff;overflow:hidden;background-size:cover;background-position:center;margin-bottom:14px;border:3px solid rgba(255,255,255,.1)}
+.pfp-preview-large img{width:100%;height:100%;object-fit:cover}
+.profile-preview-card{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:16px;text-align:center}
+.profile-preview-card .preview-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;font-weight:600}
+.profile-preview-card .preview-name{font-size:16px;font-weight:600;color:#fff;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px}
+.role-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;text-transform:uppercase;letter-spacing:.4px;margin:1px}
+.role-badge.owner{background:#f1c40f;color:#1a1a1a}
+.role-badge.member{background:#5865f2;color:#fff}
+.role-badge.guest{background:#4f545c;color:#fff}
+.role-badge.moderator{background:#2ecc71;color:#fff}
+.role-badge.vip{background:#e91e63;color:#fff}
+.role-badge.jackpot{background:linear-gradient(135deg,#f1c40f,#e67e22);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.role-badge.lucky{background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.role-badge.default{background:#4f545c;color:#fff}
+.role-chip-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.role-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:12px;color:#fff;cursor:pointer;transition:all .12s;opacity:.5}
+.role-chip:hover{background:rgba(255,255,255,.12);opacity:.8}
+.role-chip.active{background:rgba(0,120,212,.3);border-color:#0078d4;opacity:1}
+.role-chip .remove-role{background:transparent;border:none;color:#999;cursor:pointer;font-size:14px;line-height:1;padding:0 2px;font-family:inherit}
+.role-chip .remove-role:hover{color:#e74c3c}
+
+.form-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.form-row label{font-size:12.5px;font-weight:500;color:#c0c0c0}
+.form-row input[type=text],.form-row input[type=number],.form-row select{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:10px 13px;font-size:14px;color:#fff;outline:none;font-family:inherit;width:100%}
+.form-row input:focus,.form-row select:focus{border-color:#0078d4;box-shadow:0 0 0 2px rgba(0,120,212,.3)}
+.form-row input::placeholder{color:#7a7a7a}
+.form-row select option{background:#1f1f1f;color:#fff}
+
+/* ========== LINKSTORE ========== */
+.store-header{padding:22px 26px 14px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.store-header h1{font-size:24px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:10px}
+.store-header p{font-size:13px;color:#999}
+.store-toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px;flex-wrap:wrap}
+.store-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.store-tab{background:transparent;border:1px solid rgba(255,255,255,.1);color:#ccc;padding:6px 14px;border-radius:18px;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .12s;font-family:inherit}
+.store-tab:hover{background:rgba(255,255,255,.06);color:#fff}
+.store-tab.active{background:#0078d4;border-color:#0078d4;color:#fff}
+.store-body{flex:1;overflow-y:auto}
+.store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px;padding:18px 26px 26px}
+.store-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;overflow:hidden;transition:all .15s;cursor:pointer;position:relative}
+.store-card:hover{background:rgba(255,255,255,.08);transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.5)}
+.store-card .card-thumb{width:100%;aspect-ratio:16/10;object-fit:cover;background:linear-gradient(135deg,#0078d4,#8764b8);display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;font-weight:700;overflow:hidden}
+.store-card .card-thumb img{width:100%;height:100%;object-fit:cover}
+.store-card .card-info{padding:11px 13px}
+.store-card .card-title{font-size:13.5px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.store-card .card-author{font-size:11px;color:#999;display:flex;align-items:center;gap:6px}
+.store-card .card-author .mini-avatar{width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#0078d4,#00bcf2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;overflow:hidden}
+.store-card .card-price{font-size:11px;color:#f1c40f;font-weight:700;margin-top:4px;display:flex;align-items:center;gap:4px}
+.store-card .card-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);backdrop-filter:blur(10px);color:#fff;font-size:9.5px;font-weight:600;padding:3px 8px;border-radius:8px;text-transform:uppercase;letter-spacing:.5px;z-index:2}
+.store-card .card-badge.owner{background:#f1c40f;color:#1a1a1a}
+.store-card .card-badge.partner{background:#00bcf2;color:#001a2b}
+.store-card .card-badge.owned{background:#2ecc71;color:#fff}
+.store-card .delete-game-btn{position:absolute;top:8px;left:8px;background:rgba(196,43,28,.95);border:none;color:#fff;font-size:10.5px;font-weight:600;padding:4px 9px;border-radius:6px;cursor:pointer;z-index:5;transition:all .15s;font-family:inherit;display:none}
+.store-card .delete-game-btn:hover{background:#e81123;transform:scale(1.05)}
+.store-card.owner-view .delete-game-btn{display:block}
+.store-card .install-btn{position:absolute;bottom:8px;right:8px;background:#0078d4;border:none;color:#fff;font-size:10.5px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;z-index:4;transition:all .15s;font-family:inherit}
+.store-card .install-btn:hover{background:#1a86d9}
+.store-card .install-btn.installed{background:#2ecc71}
+.store-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:#999}
+.store-empty svg{width:64px;height:64px;opacity:.3;margin-bottom:14px}
+
+.publish-form{padding:18px 26px 26px}
+.file-drop{border:2px dashed rgba(255,255,255,.15);border-radius:8px;padding:22px;text-align:center;cursor:pointer;transition:all .15s;color:#999;font-size:12.5px}
+.file-drop:hover,.file-drop.dragover{border-color:#0078d4;background:rgba(0,120,212,.08);color:#fff}
+.file-drop input{display:none}
+.file-preview{width:100%;max-width:220px;aspect-ratio:16/10;border-radius:6px;object-fit:cover;margin-top:10px;display:none;border:1px solid rgba(255,255,255,.1)}
+.file-preview.visible{display:block}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+
+.buy-overlay{position:absolute;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+.buy-overlay.visible{display:flex}
+.buy-modal{background:#2b2d31;border-radius:10px;padding:22px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.06);text-align:center}
+.buy-modal h3{font-size:18px;font-weight:600;margin-bottom:10px}
+.buy-modal p{font-size:13.5px;color:#b5bac1;margin-bottom:16px;line-height:1.4}
+.buy-modal .price-tag{font-size:22px;font-weight:700;color:#f1c40f;margin-bottom:18px;display:flex;align-items:center;justify-content:center;gap:6px}
+.buy-modal .actions{display:flex;gap:10px;justify-content:center}
+
+/* ========== SOUNDBOARD ========== */
+.soundboard-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.soundboard-toolbar{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;gap:10px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+.soundboard-toolbar .sb-search{flex:1;min-width:160px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:9px 13px;font-size:13.5px;color:#fff;outline:none;font-family:inherit}
+.soundboard-toolbar .sb-search:focus{border-color:#0078d4}
+.soundboard-toolbar .sb-search::placeholder{color:#7a7a7a}
+.soundboard-toolbar .sb-add-btn{background:#0078d4;border:none;color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .12s;display:flex;align-items:center;gap:6px}
+.soundboard-toolbar .sb-add-btn:hover{background:#1a86d9}
+.soundboard-toolbar .sb-add-btn svg{width:16px;height:16px}
+.soundboard-grid{flex:1;overflow-y:auto;padding:18px 20px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;align-content:start}
+.sound-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;transition:all .15s;position:relative}
+.sound-card:hover{background:rgba(255,255,255,.09);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.sound-card.playing{border-color:#0078d4;box-shadow:0 0 0 2px rgba(0,120,212,.4)}
+.sound-card .sound-icon{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#0078d4,#00bcf2);display:flex;align-items:center;justify-content:center;margin:0 auto;cursor:pointer;transition:transform .12s}
+.sound-card .sound-icon:hover{transform:scale(1.08)}
+.sound-card .sound-icon:active{transform:scale(.94)}
+.sound-card .sound-icon svg{width:24px;height:24px;fill:#fff}
+.sound-card .sound-name{font-size:13px;font-weight:600;text-align:center;color:#fff;word-break:break-word;line-height:1.25}
+.sound-card .sound-meta{font-size:10.5px;color:#888;text-align:center}
+.sound-card .sound-actions{display:flex;gap:4px;justify-content:center;margin-top:auto}
+.sound-card .sound-actions button{background:rgba(255,255,255,.08);border:none;color:#ccc;font-size:11px;font-weight:600;padding:4px 8px;border-radius:5px;cursor:pointer;font-family:inherit;transition:all .12s}
+.sound-card .sound-actions button:hover{background:rgba(255,255,255,.18);color:#fff}
+.sound-card .sound-actions .del-btn:hover{background:#c42b1c;color:#fff}
+.soundboard-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:#999}
+.soundboard-empty svg{width:64px;height:64px;opacity:.3;margin-bottom:14px}
+
+/* Add sound modal */
+.sb-modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+.sb-modal-overlay.visible{display:flex}
+.sb-modal{background:#2b2d31;border-radius:10px;padding:22px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.06)}
+.sb-modal h3{font-size:18px;font-weight:600;margin-bottom:6px;color:#fff}
+.sb-modal p{font-size:13px;color:#b5bac1;margin-bottom:16px}
+.sb-modal .form-row{margin-bottom:12px}
+.sb-modal .sb-tabs{display:flex;gap:6px;margin-bottom:14px}
+.sb-modal .sb-tab{flex:1;background:transparent;border:1px solid rgba(255,255,255,.1);color:#ccc;padding:7px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .12s}
+.sb-modal .sb-tab.active{background:#0078d4;border-color:#0078d4;color:#fff}
+.sb-modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+
+/* ========== LINKCHAT ========== */
+.discord-layout{display:flex;flex:1;overflow:hidden;background:#313338}
+.discord-server-rail{width:72px;background:#1e1f22;display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px;overflow-y:auto;flex-shrink:0}
+.server-icon{width:48px;height:48px;border-radius:50%;background:#313338;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;cursor:pointer;transition:all .15s;border:2px solid transparent;flex-shrink:0;position:relative}
+.server-icon:hover{border-radius:16px;background:#5865f2}
+.server-icon.active{background:#5865f2;border-radius:16px}
+.server-icon.active::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:4px;height:24px;background:#fff;border-radius:0 3px 3px 0}
+.server-icon.home{background:#5865f2}
+.server-sep{width:32px;height:2px;background:rgba(255,255,255,.06);border-radius:1px}
+
+.discord-channel-sidebar{width:240px;background:#2b2d31;display:flex;flex-direction:column;flex-shrink:0;border-right:1px solid #1e1f22}
+.discord-server-header{padding:14px 16px;border-bottom:1px solid #1e1f22;font-size:14.5px;font-weight:600;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.discord-channel-list{flex:1;overflow-y:auto;padding:8px 0}
+.discord-channel-category{padding:14px 16px 6px;font-size:11px;font-weight:700;color:#949ba4;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.discord-channel{display:flex;align-items:center;gap:8px;padding:6px 14px;margin:1px 8px;border-radius:4px;cursor:pointer;color:#949ba4;font-size:14px;transition:all .1s;font-weight:500}
+.discord-channel:hover{background:rgba(255,255,255,.04);color:#dbdee1}
+.discord-channel.active{background:rgba(255,255,255,.08);color:#fff}
+.discord-channel .hash{color:#80848e;font-weight:600}
+.discord-channel.active .hash{color:#dbdee1}
+.discord-channel .dm-avatar-small{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#0078d4,#00bcf2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}
+.discord-channel .dm-avatar-small img{width:100%;height:100%;object-fit:cover}
+
+.discord-user-bar{padding:8px 10px;background:#232428;display:flex;align-items:center;gap:8px;border-top:1px solid #1e1f22}
+.discord-user-bar .user-avatar{width:32px;height:32px;font-size:13px}
+.discord-user-bar .user-info{flex:1;min-width:0}
+.discord-user-bar .user-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.discord-user-bar .user-tag{font-size:11px;color:#949ba4}
+.discord-user-bar .icon-btn{width:32px;height:32px;border-radius:4px;border:none;background:transparent;color:#b5bac1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s}
+.discord-user-bar .icon-btn:hover{background:rgba(255,255,255,.06);color:#fff}
+
+.discord-main{flex:1;display:flex;flex-direction:column;background:#313338;overflow:hidden}
+.discord-main-header{height:48px;padding:0 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1e1f22;box-shadow:0 1px 2px rgba(0,0,0,.2);flex-shrink:0}
+.discord-main-header .hash{color:#80848e;font-size:22px;font-weight:600}
+.discord-main-header h3{font-size:15px;font-weight:600}
+.discord-main-header .topic{font-size:13px;color:#949ba4;padding-left:10px;border-left:1px solid #4f545c;margin-left:10px}
+.discord-messages{flex:1;overflow-y:auto;padding:16px 0}
+.discord-msg{display:flex;gap:14px;padding:4px 18px;position:relative}
+.discord-msg:hover{background:rgba(0,0,0,.06)}
+.discord-msg .msg-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0078d4,#00bcf2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;flex-shrink:0;overflow:hidden;background-size:cover;background-position:center;cursor:pointer;transition:transform .12s}
+.discord-msg .msg-avatar:hover{transform:scale(1.08);box-shadow:0 0 0 2px #5865f2}
+.discord-msg .msg-avatar img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.discord-msg.owner .msg-avatar{background:linear-gradient(135deg,#f1c40f,#e67e22)}
+.discord-msg .msg-body{flex:1;min-width:0}
+.discord-msg .msg-header{display:flex;align-items:center;gap:8px;margin-bottom:2px;flex-wrap:wrap}
+.discord-msg .msg-name{font-size:15px;font-weight:600;color:#fff;cursor:pointer}
+.discord-msg .msg-name:hover{text-decoration:underline}
+.discord-msg.owner .msg-name{color:#f1c40f}
+.discord-msg .msg-time{font-size:11px;color:#949ba4;margin-left:2px}
+.discord-msg .msg-text{font-size:14.5px;line-height:1.4;color:#dbdee1;word-wrap:break-word;white-space:pre-wrap}
+.discord-msg.system{justify-content:center;padding:8px}
+.discord-msg.system .msg-text{font-size:12px;color:#949ba4;font-style:italic;text-align:center}
+
+.discord-input-area{padding:0 16px 22px;flex-shrink:0}
+.discord-input-box{background:#383a40;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.discord-input-box input{flex:1;background:transparent;border:none;outline:none;color:#dbdee1;font-size:14.5px;font-family:inherit}
+.discord-input-box input::placeholder{color:#6d6f78}
+.discord-input-box .send-btn{background:transparent;border:none;color:#b5bac1;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;transition:color .12s}
+.discord-input-box .send-btn:hover{color:#5865f2}
+.discord-input-box .send-btn svg{width:18px;height:18px}
+
+.discord-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#949ba4;gap:12px;padding:40px;text-align:center}
+.discord-empty svg{width:56px;height:56px;opacity:.4}
+
+.discord-modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.discord-modal-overlay.visible{display:flex}
+.discord-modal{background:#313338;border-radius:10px;padding:24px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.06)}
+.discord-modal h2{font-size:20px;font-weight:600;margin-bottom:6px;color:#fff}
+.discord-modal p{font-size:13.5px;color:#b5bac1;margin-bottom:18px;line-height:1.4}
+.discord-modal input{width:100%;background:#1e1f22;border:1px solid #1e1f22;border-radius:6px;padding:11px 14px;color:#fff;outline:none;font-size:14px;font-family:inherit;margin-bottom:16px}
+.discord-modal input:focus{border-color:#5865f2}
+.discord-modal .modal-actions{display:flex;justify-content:flex-end;gap:10px}
+.discord-btn{padding:10px 20px;border-radius:6px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .12s}
+.discord-btn.primary{background:#5865f2;color:#fff}
+.discord-btn.primary:hover{background:#4752c4}
+.discord-btn.secondary{background:transparent;color:#dbdee1}
+.discord-btn.secondary:hover{text-decoration:underline}
+
+.request-badge{background:#ed4245;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:auto}
+
+/* Profile modal */
+.profile-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:2600;padding:20px}
+.profile-modal-overlay.visible{display:flex}
+.profile-modal{background:#2b2d31;border-radius:12px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.75);border:1px solid rgba(255,255,255,.06)}
+.profile-modal-banner{height:80px;background:linear-gradient(135deg,#5865f2,#0078d4)}
+.profile-modal-body{padding:0 22px 22px;position:relative}
+.profile-modal-avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#0078d4,#00bcf2);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:#fff;overflow:hidden;border:5px solid #2b2d31;margin-top:-44px;margin-bottom:14px}
+.profile-modal-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-modal-name{font-size:22px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.profile-modal-username{font-size:13px;color:#949ba4;margin-bottom:14px}
+.profile-modal-roles{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:18px}
+.profile-modal-stats{display:flex;gap:16px;margin-bottom:18px;font-size:12px;color:#949ba4}
+.profile-modal-stats strong{color:#fff}
+.profile-modal-actions{display:flex;gap:8px;flex-wrap:wrap}
+.profile-modal-actions button{flex:1;min-width:120px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:6px}
+.profile-modal-actions .add-btn{background:#5865f2;color:#fff}
+.profile-modal-actions .add-btn:hover{background:#4752c4}
+.profile-modal-actions .add-btn.friends{background:#2ecc71}
+.profile-modal-actions .add-btn.pending{background:#f1c40f;color:#1a1a1a}
+.profile-modal-actions .dm-btn{background:rgba(255,255,255,.1);color:#fff}
+.profile-modal-actions .dm-btn:hover{background:rgba(255,255,255,.2)}
+.profile-modal-actions .ban-btn{background:#c42b1c;color:#fff}
+.profile-modal-actions .ban-btn:hover{background:#e81123}
+.profile-modal-actions .ban-btn.unban{background:#2ecc71}
+.profile-modal-actions .ban-btn.unban:hover{background:#27ae60}
+
+/* ========== ROULETTE ========== */
+.roulette-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto;background:radial-gradient(circle at 50% 40%, #2a1f0a 0%, #1a1206 100%)}
+.roulette-wheel-wrap{position:relative;width:340px;height:340px;max-width:80vw;max-height:80vw;margin-bottom:20px}
+.roulette-wheel{width:100%;height:100%;border-radius:50%;border:8px solid #f1c40f;box-shadow:0 0 40px rgba(241,196,15,.4), inset 0 0 30px rgba(0,0,0,.6);position:relative;overflow:hidden;transition:transform 4s cubic-bezier(.17,.67,.24,1)}
+.roulette-wheel svg{display:block;width:100%;height:100%}
+.roulette-pointer{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:24px solid #f1c40f;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6));z-index:5}
+.roulette-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#f1c40f,#e67e22);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#1a1a1a;box-shadow:0 0 20px rgba(241,196,15,.5);z-index:4;border:3px solid #fff}
+.roulette-controls{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:8px}
+.roulette-info{font-size:14px;color:#ccc;text-align:center;line-height:1.5}
+.roulette-info strong{color:#f1c40f}
+.roulette-spin-btn{padding:16px 48px;font-size:18px;font-weight:700;border-radius:50px;background:linear-gradient(135deg,#f1c40f,#e67e22);color:#1a1a1a;border:none;cursor:pointer;font-family:inherit;box-shadow:0 6px 20px rgba(241,196,15,.4);transition:all .15s;text-transform:uppercase;letter-spacing:1px}
+.roulette-spin-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 30px rgba(241,196,15,.6)}
+.roulette-spin-btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.5)}
+.roulette-result{margin-top:16px;padding:16px 24px;border-radius:10px;background:rgba(0,0,0,.4);border:1px solid rgba(241,196,15,.3);font-size:16px;text-align:center;min-height:56px;display:flex;align-items:center;justify-content:center;max-width:420px}
+.roulette-result.win{color:#2ecc71;border-color:rgba(46,204,113,.5);background:rgba(46,204,113,.1)}
+.roulette-result.lose{color:#e74c3c;border-color:rgba(231,76,60,.4);background:rgba(231,76,60,.08)}
+.roulette-result.jackpot{color:#f1c40f;border-color:rgba(241,196,15,.6);background:rgba(241,196,15,.15);font-weight:700;font-size:17px;animation:jackpotGlow 1.2s ease infinite alternate}
+@keyframes jackpotGlow{from{box-shadow:0 0 10px rgba(241,196,15,.3)}to{box-shadow:0 0 30px rgba(241,196,15,.7)}}
+.roulette-reset-timer{font-size:12px;color:#999;margin-top:6px}
+
+/* ========== COIN RAIN ========== */
+.coin-rain{position:fixed;inset:0;pointer-events:none;z-index:4000}
+.spawned-coin{position:absolute;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #ffe45c, #f1c40f 60%, #c9a007);border:2px solid #8a6d00;box-shadow:0 4px 12px rgba(0,0,0,.5), inset 0 -3px 6px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#8a6d00;cursor:pointer;pointer-events:auto;user-select:none;animation:coinFloat 0.6s ease-out, coinPulse 1.8s ease-in-out infinite;transition:transform .12s ease}
+.spawned-coin:hover{transform:scale(1.15)}
+.spawned-coin:active{transform:scale(.9)}
+.spawned-coin.rare{background:radial-gradient(circle at 35% 30%, #b8ffe0, #2ecc71 60%, #107c10);border-color:#0a5a0a;color:#0a5a0a;box-shadow:0 4px 16px rgba(46,204,113,.7), 0 0 30px rgba(46,204,113,.4);animation:coinFloat 0.6s ease-out, rareGlow 1.2s ease-in-out infinite alternate}
+.spawned-coin.collected{animation:coinCollect .35s ease forwards;pointer-events:none}
+@keyframes coinFloat{from{transform:translateY(-30px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes coinPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.15)}}
+@keyframes rareGlow{from{filter:brightness(1) drop-shadow(0 0 6px #2ecc71)}to{filter:brightness(1.3) drop-shadow(0 0 16px #2ecc71)}}
+@keyframes coinCollect{to{transform:scale(1.8);opacity:0}}
+
+/* ========== OWNER PANEL ========== */
+.owner-body{flex:1;overflow-y:auto;padding:20px 24px}
+.owner-section{margin-bottom:24px;padding:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px}
+.owner-section h3{font-size:15px;font-weight:600;margin-bottom:6px;color:#f1c40f;display:flex;align-items:center;gap:8px}
+.owner-section p{font-size:12.5px;color:#999;margin-bottom:12px}
+.owner-user-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;margin-bottom:6px;flex-wrap:wrap}
+.owner-user-row .ou-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#0078d4,#00bcf2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;overflow:hidden}
+.owner-user-row .ou-avatar img{width:100%;height:100%;object-fit:cover}
+.owner-user-row .ou-info{flex:1;min-width:0}
+.owner-user-row .ou-name{font-size:13px;font-weight:600;color:#fff}
+.owner-user-row .ou-name .banned-tag{background:#c42b1c;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px;margin-left:6px;text-transform:uppercase}
+.owner-user-row .ou-roles{font-size:11px;color:#999;margin-top:4px;display:flex;flex-wrap:wrap;gap:3px}
+.owner-user-row .ou-secret{font-size:11px;color:#888;margin-top:6px;background:rgba(0,0,0,.3);padding:6px 10px;border-radius:6px;border-left:2px solid #f1c40f;font-family:Consolas,monospace;word-break:break-all;display:flex;align-items:center;gap:8px}
+.owner-user-row .ou-secret .show-pass-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#ccc;font-size:10px;font-weight:600;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:inherit;margin-left:auto;flex-shrink:0}
+.owner-user-row .ou-secret .show-pass-btn:hover{background:rgba(255,255,255,.16);color:#fff}
+.owner-user-row .ou-secret .pass-value{color:#ff6b6b;font-weight:600}
+.owner-user-row .ou-coins{font-size:12px;color:#f1c40f;font-weight:700;white-space:nowrap}
+.owner-user-row .ou-actions{width:100%;display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.owner-user-row .ou-actions button{flex:1;min-width:80px;padding:7px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:all .12s}
+.owner-user-row .ou-actions .add-role-btn{background:#f1c40f;color:#1a1a1a}
+.owner-user-row .ou-actions .add-role-btn:hover{background:#ffe45c}
+.owner-user-row .ou-actions .ban-btn{background:#c42b1c;color:#fff}
+.owner-user-row .ou-actions .ban-btn:hover{background:#e81123}
+.owner-user-row .ou-actions .ban-btn.unban{background:#2ecc71}
+.owner-user-row .ou-actions .ban-btn.unban:hover{background:#27ae60}
+.owner-user-row .ou-actions select{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:7px 10px;font-size:11.5px;color:#fff;outline:none;font-family:inherit;min-width:100px}
+.owner-action-btn{width:100%;padding:12px;border-radius:8px;background:linear-gradient(135deg,#f1c40f,#e67e22);border:none;color:#1a1a1a;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 4px 14px rgba(241,196,15,.4);transition:all .15s;margin-top:6px}
+.owner-action-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(241,196,15,.6)}
+.owner-action-btn.danger{background:linear-gradient(135deg,#e74c3c,#c42b1c);color:#fff;box-shadow:0 4px 14px rgba(231,76,60,.4)}
+.owner-action-btn.danger:hover{box-shadow:0 8px 24px rgba(231,76,60,.6)}
+.owner-stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
+.owner-stat-row .label{color:#999}
+.owner-stat-row .value{color:#fff;font-weight:600}
+
+/* App viewer */
+.game-viewer{position:fixed;inset:0;background:#000;z-index:2000;display:none;flex-direction:column}
+.game-viewer.visible{display:flex}
+.game-viewer-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:rgba(32,32,32,.95);border-bottom:1px solid rgba(255,255,255,.08);color:#fff;flex-shrink:0}
+.game-viewer-bar .gv-title{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px}
+.game-viewer-bar .gv-title img{width:22px;height:22px;border-radius:4px;object-fit:cover}
+.game-viewer iframe{flex:1;border:none;background:#111;width:100%}
+
+.toast{position:fixed;bottom:66px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(32,32,32,.95);color:#fff;padding:11px 20px;border-radius:6px;font-size:13px;font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.1);opacity:0;pointer-events:none;transition:all .3s ease;z-index:5000}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.start-menu{position:fixed;bottom:56px;left:50%;transform:translateX(-50%);width:540px;max-width:92%;background:rgba(32,32,32,.95);backdrop-filter:blur(30px) saturate(180%);border-radius:10px;border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 50px rgba(0,0,0,.7);padding:22px;display:none;z-index:850;color:#fff}
+.start-menu.visible{display:block;animation:startOpen .2s ease}
+@keyframes startOpen{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.start-menu h3{font-size:13px;color:#999;margin-bottom:14px;font-weight:500}
+.start-apps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.start-app{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 6px;border-radius:6px;cursor:pointer;transition:background .12s;border:none;background:transparent;color:#fff;font-family:inherit}
+.start-app:hover{background:rgba(255,255,255,.08)}
+.start-app svg,.start-app img{width:34px;height:34px;border-radius:5px;object-fit:cover}
+.start-app span{font-size:11.5px;font-weight:500;text-align:center;line-height:1.2}
+.start-app.owner-only{display:none}
+body.is-owner .start-app.owner-only{display:flex}
+
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+
+@media (max-width:700px){
+  .settings-sidebar{width:56px;padding:14px 4px}
+  .settings-sidebar .sidebar-item span,.settings-sidebar .sidebar-user .user-info{display:none}
+  .settings-sidebar .sidebar-item{justify-content:center;padding:10px}
+  .settings-content{padding:16px 14px}
+  .app-window{width:96% !important;left:2% !important;height:80vh !important;top:10vh !important}
+  .discord-channel-sidebar{width:180px}
+}
+</style>
+</head>
+<body>
+
+<!-- ========== LOGIN SCREEN ========== -->
+<div id="login-screen">
+  <div class="win11-card">
+    <div class="win-logo">
+      <svg viewBox="0 0 88 88"><defs><linearGradient id="wlg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4cc2ff"/><stop offset="1" stop-color="#0078d4"/></linearGradient></defs><rect x="0" y="0" width="40" height="40" rx="3" fill="url(#wlg)"/><rect x="48" y="0" width="40" height="40" rx="3" fill="url(#wlg)"/><rect x="0" y="48" width="40" height="40" rx="3" fill="url(#wlg)"/><rect x="48" y="48" width="40" height="40" rx="3" fill="url(#wlg)"/></svg>
+    </div>
+    <div class="win-title">Welcome to LinkVault</div>
+    <div class="win-sub">Sign in to your LinkVault account</div>
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="login" type="button">Sign in</button>
+      <button class="tab-btn" data-tab="signup" type="button">Create account</button>
+      <button class="tab-btn hidden-hint" data-tab="owner" type="button">Owner</button>
+    </div>
+    <div class="panel active" id="panel-login">
+      <div class="input-group"><label>Username</label><input type="text" id="login-user" class="win-input" placeholder="e.g. alex"></div>
+      <div class="input-group"><label>Password</label><input type="password" id="login-pass" class="win-input" placeholder="••••••••"></div>
+      <button class="win-btn" id="btn-login" type="button">Sign in</button>
+    </div>
+    <div class="panel" id="panel-signup">
+      <div class="input-group"><label>Username</label><input type="text" id="signup-user" class="win-input" placeholder="Choose a unique username"></div>
+      <div class="input-group"><label>Email <span class="opt">(optional)</span></label><input type="email" id="signup-email" class="win-input" placeholder="you@example.com"></div>
+      <div class="input-group"><label>Password</label><input type="password" id="signup-pass" class="win-input" placeholder="Min 4 characters"></div>
+      <button class="win-btn" id="btn-signup" type="button">Create account</button>
+    </div>
+    <div class="panel" id="panel-owner">
+      <div class="input-group"><label>Owner name</label><input type="text" id="owner-name" class="win-input" placeholder="Enter owner name"></div>
+      <div class="input-group"><label>Owner password</label><input type="password" id="owner-pass" class="win-input" placeholder="••••••••"></div>
+      <button class="win-btn secondary" id="btn-owner" type="button">Owner sign in</button>
+    </div>
+    <div class="message" id="message">LinkVault · Secure sign-in</div>
+  </div>
+</div>
+
+<!-- ========== BANNED SCREEN ========== -->
+<div id="banned-screen">
+  <div class="banned-card">
+    <div class="ban-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+    </div>
+    <h1>You have been banned</h1>
+    <p>Your account has been permanently banned from LinkVault by an owner.</p>
+    <div class="reason" id="ban-reason">No reason provided.</div>
+    <p style="font-size:12.5px;color:#999">You cannot access the site until an owner unbans you.</p>
+    <div class="banned-meta" id="ban-meta"></div>
+  </div>
+</div>
+
+<!-- ========== DESKTOP ========== -->
+<div id="desktop">
+  <div id="wallpaper"></div>
+  <div class="desktop-icons" id="desktop-icons"></div>
+
+  <div class="taskbar">
+    <div class="taskbar-center" id="taskbar-apps">
+      <button class="taskbar-btn" id="start-btn" title="Start">
+        <svg viewBox="0 0 88 88"><defs><linearGradient id="tb-w" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4cc2ff"/><stop offset="1" stop-color="#0078d4"/></linearGradient></defs><rect x="0" y="0" width="40" height="40" rx="3" fill="url(#tb-w)"/><rect x="48" y="0" width="40" height="40" rx="3" fill="url(#tb-w)"/><rect x="0" y="48" width="40" height="40" rx="3" fill="url(#tb-w)"/><rect x="48" y="48" width="40" height="40" rx="3" fill="url(#tb-w)"/></svg>
+      </button>
+      <button class="taskbar-btn" data-app-btn="soundboard" title="Soundboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      </button>
+      <button class="taskbar-btn" data-app-btn="linkchat" title="LinkChat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#5865f2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      <button class="taskbar-btn" data-app-btn="roulette" title="Roulette">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+      </button>
+      <button class="taskbar-btn" data-app-btn="settings" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4cc2ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="taskbar-btn" data-app-btn="store" title="LinkStore">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4cc2ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><path d="M3 9h18"/><path d="M9 13h6"/></svg>
+      </button>
+      <button class="taskbar-btn owner-only" data-app-btn="ownerpanel" title="Owner Panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+      </button>
+    </div>
+    <div class="taskbar-right">
+      <div class="coin-display" id="coin-display" title="Your credits">
+        <svg viewBox="0 0 24 24" fill="#f1c40f"><circle cx="12" cy="12" r="10"/><text x="12" y="17" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">₵</text></svg>
+        <span id="coin-balance">0</span>
+      </div>
+      <div class="tray" id="tray-clock">
+        <div class="tray-icons">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#eee" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#eee" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div id="tray-time">--:--</div>
+        <div id="tray-date">--/--/----</div>
+      </div>
+      <div class="user-chip" id="user-chip">
+        <div class="user-avatar" id="taskbar-avatar">U</div>
+        <span id="taskbar-username">User</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="start-menu" id="start-menu">
+    <h3>Pinned</h3>
+    <div class="start-apps" id="start-apps-grid"></div>
+  </div>
+</div>
+
+<!-- ========== SETTINGS APP ========== -->
+<div class="app-window" id="settings-window" data-app="settings">
+  <div class="app-titlebar" data-drag>
+    <div class="app-titlebar-left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4cc2ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </div>
+    <div class="window-controls">
+      <button type="button" class="min-btn" data-min="settings"><svg viewBox="0 0 10 10"><rect x="0" y="4.5" width="10" height="1" fill="currentColor"/></svg></button>
+      <button type="button" class="max-btn" data-max="settings"><svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor"/></svg></button>
+      <button type="button" class="close-btn" data-close="settings"><svg viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.2"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.2"/></svg></button>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <div class="settings-sidebar">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">U</div>
+        <div class="user-info">
+          <div class="uname" id="sidebar-username">User</div>
+          <div class="urole" id="sidebar-role">Local account</div>
+        </div>
+      </div>
+      <button class="sidebar-item" data-section="profile" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profile</span>
+      </button>
+      <button class="sidebar-item active" data-section="personalization" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>Personalization</span>
+      </button>
+      <button class="sidebar-item" data-section="account" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Account</span>
+      </button>
+      <button class="sidebar-item" data-section="about" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>About</span>
+      </button>
+    </div>
+
+    <div class="settings-content">
+      <div class="settings-section" id="section-profile">
+        <h2>Profile</h2>
+        <div class="section-desc">Customize how you appear across LinkChat and apps</div>
+        <div class="profile-editor">
+          <div class="profile-edit-left">
+            <div class="form-row">
+              <label>Profile picture</label>
+              <div style="display:flex;align-items:center;gap:14px">
+                <div class="pfp-preview-large" id="pfp-preview-large">U</div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <button class="upload-btn" id="pfp-upload-btn" type="button">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Upload photo
+                  </button>
+                  <input type="file" id="pfp-file-input" accept="image/*" style="display:none">
+                  <button class="upload-btn" id="pfp-clear-btn" type="button">Remove photo</button>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>Display name</label>
+              <input type="text" id="profile-display-name" placeholder="Your display name" maxlength="32">
+            </div>
+            <div class="form-row">
+              <label>Your roles (click to equip/unequip — equipped roles show first)</label>
+              <div class="role-chip-list" id="my-roles-list"></div>
+            </div>
+            <button class="win-btn" id="save-profile-btn" type="button">Save profile</button>
+          </div>
+          <div class="profile-edit-right">
+            <div class="profile-preview-card">
+              <div class="preview-label">Profile preview</div>
+              <div class="pfp-preview-large" id="preview-avatar" style="margin:0 auto">U</div>
+              <div class="preview-name" id="preview-name">username</div>
+              <div style="margin-top:8px" id="preview-role-badges"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section active" id="section-personalization">
+        <h2>Personalization</h2>
+        <div class="section-desc">Choose a wallpaper that fits your style</div>
+        <div class="wallpaper-grid" id="wallpaper-grid"></div>
+        <div class="upload-row">
+          <label>Use your own image:</label>
+          <button class="upload-btn" id="upload-wallpaper-btn" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload image
+          </button>
+          <input type="file" id="wallpaper-file-input" accept="image/*" style="display:none">
+          <button class="upload-btn" id="clear-custom-wallpaper" type="button" style="display:none">Remove custom</button>
+        </div>
+        <div class="custom-color-row">
+          <label>Solid colors:</label>
+          <div class="color-swatches" id="color-swatches"></div>
+        </div>
+      </div>
+
+      <div class="settings-section" id="section-account">
+        <h2>Account</h2>
+        <div class="section-desc">Your account information</div>
+        <div class="account-card">
+          <div class="big-avatar" id="account-avatar">U</div>
+          <div class="account-details"><h3 id="account-username">User</h3><p id="account-role">Local account</p></div>
+        </div>
+        <div class="info-row"><span class="info-label">Username</span><span class="info-value" id="info-username">-</span></div>
+        <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="info-email">-</span></div>
+        <div class="info-row"><span class="info-label">Account type</span><span class="info-value" id="info-type">-</span></div>
+        <div class="info-row"><span class="info-label">Credits</span><span class="info-value" id="info-coins">0</span></div>
+        <div class="info-row"><span class="info-label">Roles owned</span><span class="info-value" id="info-roles">Member</span></div>
+        <button class="signout-btn" id="signout-btn" type="button">Sign out</button>
+      </div>
+
+      <div class="settings-section" id="section-about">
+        <h2>About</h2>
+        <div class="section-desc">System information</div>
+        <div class="account-card">
+          <div class="big-avatar">L</div>
+          <div class="account-details"><h3>LinkVault</h3><p>Web Simulation · Version 2.7</p></div>
+        </div>
+        <div class="about-image-wrap" id="about-image-wrap">
+          <!-- PASTE YOUR IMAGE HERE: replace the placeholder div below with <img src="YOUR_IMAGE_URL_OR_DATA_URI" alt="About image"> -->
+          <div class="about-image-placeholder" id="about-image-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <div>Paste your image in the HTML at <code style="color:#4cc2ff">id="about-image-wrap"</code></div>
+          </div>
+        </div>
+        <div class="info-row"><span class="info-label">Edition</span><span class="info-value">LinkVault Web</span></div>
+        <div class="info-row"><span class="info-label">Version</span><span class="info-value">2.7.0</span></div>
+        <div class="info-row"><span class="info-label">Build</span><span class="info-value">26100.web</span></div>
+        <div class="info-row"><span class="info-label">Owner</span><span class="info-value">Ryan</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SOUNDBOARD APP ========== -->
+<div class="app-window" id="soundboard-window" data-app="soundboard">
+  <div class="app-titlebar" data-drag>
+    <div class="app-titlebar-left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      Soundboard
+    </div>
+    <div class="window-controls">
+      <button type="button" class="min-btn" data-min="soundboard"><svg viewBox="0 0 10 10"><rect x="0" y="4.5" width="10" height="1" fill="currentColor"/></svg></button>
+      <button type="button" class="max-btn" data-max="soundboard"><svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor"/></svg></button>
+      <button type="button" class="close-btn" data-close="soundboard"><svg viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.2"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.2"/></svg></button>
+    </div>
+  </div>
+
+  <div class="soundboard-body">
+    <div class="soundboard-toolbar">
+      <input type="text" class="sb-search" id="sb-search" placeholder="Search sounds...">
+      <button class="sb-add-btn" id="sb-add-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Sound
+      </button>
+    </div>
+    <div class="soundboard-grid" id="sb-grid"></div>
+  </div>
+
+  <!-- Add sound modal -->
+  <div class="sb-modal-overlay" id="sb-modal">
+    <div class="sb-modal">
+      <h3>Add a Sound</h3>
+      <p>Upload an audio file or paste a URL to an audio file.</p>
+      <div class="sb-tabs">
+        <button class="sb-tab active" data-sb-tab="file" type="button">Upload file</button>
+        <button class="sb-tab" data-sb-tab="url" type="button">From URL</button>
+      </div>
+      <div class="form-row">
+        <label>Sound name</label>
+        <input type="text" id="sb-name" placeholder="e.g. Airhorn" maxlength="40">
+      </div>
+      <div id="sb-tab-file">
+        <div class="form-row">
+          <label>Audio file</label>
+          <input type="file" id="sb-file" accept="audio/*" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:10px 13px;color:#fff;font-size:13px;width:100%;font-family:inherit">
+        </div>
+      </div>
+      <div id="sb-tab-url" style="display:none">
+        <div class="form-row">
+          <label>Audio URL</label>
+          <input type="text" id="sb-url" placeholder="https://example.com/sound.mp3">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="discord-btn secondary" id="sb-cancel" type="button">Cancel</button>
+        <button class="discord-btn primary" id="sb-save" type="button">Save Sound</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== LINKSTORE APP ========== -->
+<div class="app-window" id="store-window" data-app="store">
+  <div class="app-titlebar" data-drag>
+    <div class="app-titlebar-left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4cc2ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><path d="M3 9h18"/><path d="M9 13h6"/></svg>
+      LinkStore
+    </div>
+    <div class="window-controls">
+      <button type="button" class="min-btn" data-min="store"><svg viewBox="0 0 10 10"><rect x="0" y="4.5" width="10" height="1" fill="currentColor"/></svg></button>
+      <button type="button" class="max-btn" data-max="store"><svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor"/></svg></button>
+      <button type="button" class="close-btn" data-close="store"><svg viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.2"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.2"/></svg></button>
+    </div>
+  </div>
+
+  <div class="store-header">
+    <h1><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#4cc2ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><path d="M3 9h18"/><path d="M9 13h6"/></svg>LinkStore</h1>
+    <p>Discover, publish, and buy community games and partnered apps</p>
+    <div class="store-toolbar">
+      <div class="store-tabs">
+        <button class="store-tab active" data-view="browse" type="button">Browse</button>
+        <button class="store-tab" data-view="partnered" type="button">Partnered</button>
+        <button class="store-tab" data-view="publish" type="button">Publish</button>
+        <button class="store-tab" data-view="owned" type="button">My Games</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="store-body">
+    <div id="store-browse-view"><div class="store-grid" id="store-grid"></div></div>
+    <div id="store-partnered-view" style="display:none"><div class="store-grid" id="partnered-grid"></div></div>
+    <div id="store-owned-view" style="display:none"><div class="store-grid" id="owned-grid"></div></div>
+    <div id="store-publish-view" style="display:none">
+      <form class="publish-form" id="publish-form">
+        <div class="form-row"><label>App / Game title</label><input type="text" id="pub-title" placeholder="e.g. Space Adventure" maxlength="60" required></div>
+        <div class="form-row"><label>Link (URL)</label><input type="url" id="pub-link" placeholder="https://example.com/app" required></div>
+        <div class="form-row"><label>Price in credits (0 = free)</label><input type="number" id="pub-price" min="0" max="5000" value="0"></div>
+        <div class="form-row">
+          <label>Cover photo</label>
+          <div class="file-drop" id="file-drop">
+            <input type="file" id="pub-file" accept="image/*">
+            <div id="file-drop-text">Click to upload or drag & drop an image<br><span style="font-size:11px;opacity:.7">PNG, JPG, GIF, WEBP</span></div>
+            <img class="file-preview" id="file-preview" alt="preview">
+          </div>
+        </div>
+        <div class="form-row" id="pub-type-row">
+          <label>Listing type</label>
+          <select id="pub-type">
+            <option value="community">Community game</option>
+            <option value="partnered">Partnered app (owners only)</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="win-btn secondary" id="pub-cancel">Cancel</button>
+          <button type="submit" class="win-btn">Publish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="buy-overlay" id="buy-overlay">
+    <div class="buy-modal">
+      <h3 id="buy-title">Buy game</h3>
+      <p id="buy-desc">Confirm your purchase.</p>
+      <div class="price-tag"><svg viewBox="0 0 24 24" width="22" height="22" fill="#f1c40f"><circle cx="12" cy="12" r="10"/><text x="12" y="17" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">₵</text></svg><span id="buy-price">0</span></div>
+      <div class="actions">
+        <button class="discord-btn secondary" id="buy-cancel" type="button">Cancel</button>
+        <button class="discord-btn primary" id="buy-confirm" type="button">Buy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== ROULETTE APP ========== -->
+<div class="app-window" id="roulette-window" data-app="roulette">
+  <div class="app-titlebar" data-drag>
+    <div class="app-titlebar-left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+      Roulette
+    </div>
+    <div class="window-controls">
+      <button type="button" class="min-btn" data-min="roulette"><svg viewBox="0 0 10 10"><rect x="0" y="4.5" width="10" height="1" fill="currentColor"/></svg></button>
+      <button type="button" class="max-btn" data-max="roulette"><svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor"/></svg></button>
+      <button type="button" class="close-btn" data-close="roulette"><svg viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.2"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.2"/></svg></button>
+    </div>
+  </div>
+
+  <div class="roulette-body">
+    <div class="roulette-wheel-wrap">
+      <div class="roulette-pointer"></div>
+      <div class="roulette-wheel" id="roulette-wheel"></div>
+      <div class="roulette-center">SPIN</div>
+    </div>
+    <div class="roulette-controls">
+      <button class="roulette-spin-btn" id="roulette-spin-btn" type="button">Spin for 200 ₵</button>
+      <div class="roulette-info">Balance: <strong id="roulette-balance">0 ₵</strong></div>
+      <div class="roulette-reset-timer" id="roulette-reset-timer">Free spin ready</div>
+      <div class="roulette-result" id="roulette-result">Click Spin to try your luck!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== OWNER PANEL APP ========== -->
+<div class="app-window" id="ownerpanel-window" data-app="ownerpanel">
+  <div class="app-titlebar" data-drag>
+    <div class="app-titlebar-left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+      Owner Panel
+    </div>
+    <div class="window-controls">
+      <button type="button" class="min-btn" data-min="ownerpanel"><svg viewBox="0 0 10 10"><rect x="0" y="4.5" width="10" height="1" fill="currentColor"/></svg></button>
+      <button type="button" class="max-btn" data-max="ownerpanel"><svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor"/></svg></button>
+      <button type="button" class="close-btn" data-close="ownerpanel"><svg viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.2"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.2"/></svg></button>
+    </div>
+  </div>
+
+  <div class="owner-body">
+    <div class="owner-section">
+      <h3>💰 Coin Rain</h3>
+      <p>Spawn 100 coins across every signed-in user's screen. Each coin gives 10 ₵ when clicked and disappears after 20 seconds. Rare coins are extremely rare (0.01%) and grant the Lucky role.</p>
+      <button class="owner-action-btn" id="spawn-coins-btn" type="button">Spawn 100 Coins (everyone)</button>
+    </div>
+
+    <div class="owner-section">
+      <h3>👑 Manage Users</h3>
+      <p>Give roles, view passwords, and ban/unban users. Banned users are locked out of LinkVault until unbanned.</p>
+      <div id="owner-user-list"></div>
+    </div>
+
+    <div class="owner-section">
+      <h3>⚙️ Economy Controls</h3>
+      <p>Reset all users' credits to 0. Use with care.</p>
+      <button class="owner-action-btn danger" id="reset-coins-btn" type="button">Reset Everyone's Coins to 0</button>
+    </div>
+
+    <div class="owner-section">
+      <h3>📊 Economy Stats</h3>
+      <div id="owner-stats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== LINKCHAT ========== -->
+<div class="app-window" id="linkchat-window" data-app="linkchat">
+  <div class="app-titlebar" data-drag>
+    <div class="app-titlebar-left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#5865f2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      LinkChat
+    </div>
+    <div class="window-controls">
+      <button type="button" class="min-btn" data-min="linkchat"><svg viewBox="0 0 10 10"><rect x="0" y="4.5" width="10" height="1" fill="currentColor"/></svg></button>
+      <button type="button" class="max-btn" data-max="linkchat"><svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor"/></svg></button>
+      <button type="button" class="close-btn" data-close="linkchat"><svg viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.2"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.2"/></svg></button>
+    </div>
+  </div>
+
+  <div class="discord-layout">
+    <div class="discord-server-rail" id="discord-server-rail">
+      <div class="server-icon home active" data-server="home" title="Home">L</div>
+      <div class="server-sep"></div>
+      <div class="server-icon" data-server="global" title="Global Chat">G</div>
+    </div>
+
+    <div class="discord-channel-sidebar">
+      <div class="discord-server-header" id="discord-server-title"><span>Home</span></div>
+      <div class="discord-channel-list" id="discord-channel-list"></div>
+      <div class="discord-user-bar">
+        <div class="user-avatar" id="lc-user-avatar">U</div>
+        <div class="user-info">
+          <div class="user-name" id="lc-user-name">User</div>
+          <div class="user-tag" id="lc-user-role">Member</div>
+        </div>
+        <button class="icon-btn" id="lc-add-friend" title="Add friend">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+        </button>
+        <button class="icon-btn" id="lc-settings-btn" title="Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="discord-main" id="discord-main"></div>
+  </div>
+
+  <div class="discord-modal-overlay" id="add-friend-modal">
+    <div class="discord-modal">
+      <h2>Add Friend</h2>
+      <p>You can add friends by entering their exact username.</p>
+      <input type="text" id="add-friend-input" placeholder="Enter a username">
+      <div class="modal-actions">
+        <button class="discord-btn secondary" id="add-friend-cancel" type="button">Cancel</button>
+        <button class="discord-btn primary" id="add-friend-send" type="button">Send Friend Request</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PROFILE MODAL ========== -->
+<div class="profile-modal-overlay" id="profile-modal">
+  <div class="profile-modal">
+    <div class="profile-modal-banner"></div>
+    <div class="profile-modal-body">
+      <div class="profile-modal-avatar" id="pm-avatar">U</div>
+      <div class="profile-modal-name" id="pm-name">username</div>
+      <div class="profile-modal-username" id="pm-username">@username</div>
+      <div class="profile-modal-roles" id="pm-roles"></div>
+      <div class="profile-modal-stats">
+        <span>Coins: <strong id="pm-coins">0</strong></span>
+        <span>Roles: <strong id="pm-rolecount">0</strong></span>
+      </div>
+      <div class="profile-modal-actions" id="pm-actions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== APP VIEWER ========== -->
+<div class="game-viewer" id="game-viewer">
+  <div class="game-viewer-bar">
+    <div class="gv-title"><img id="gv-icon" alt=""><span id="gv-name">App</span></div>
+    <button class="win-btn secondary small" id="gv-close" type="button">Close</button>
+  </div>
+  <iframe id="gv-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock"></iframe>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="coin-rain" id="coin-rain"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ====================== STORAGE KEYS ====================== */
+  const USERS_KEY = 'linkvault_users';
+  const SESSION_KEY = 'linkvault_session';
+  const WALLPAPER_KEY = 'linkvault_wallpaper';
+  const GAMES_KEY = 'linkvault_games';
+  const CHAT_KEY = 'linkvault_chat';
+  const ICONS_KEY = 'linkvault_icon_positions';
+  const PARTNER_KEY = 'linkvault_partnered';
+  const WINDOW_KEY = 'linkvault_window_state';
+  const FRIENDS_KEY = 'linkvault_friends';
+  const REQUESTS_KEY = 'linkvault_friend_requests';
+  const DMS_KEY = 'linkvault_dms';
+  const PROFILES_KEY = 'linkvault_profiles';
+  const COINS_KEY = 'linkvault_coins';
+  const OWNED_KEY = 'linkvault_owned';
+  const ROLES_KEY = 'linkvault_roles_owned';
+  const ROULETTE_KEY = 'linkvault_roulette';
+  const COIN_RAIN_KEY = 'linkvault_coin_rain';
+  const INSTALLED_KEY = 'linkvault_installed';
+  const BANS_KEY = 'linkvault_bans';
+  const SOUNDS_KEY = 'linkvault_sounds';
+
+  /* ====================== CONSTANTS ====================== */
+  const ROULETTE_PRICE = 200;
+  const ROULETTE_FREE_MS = 30 * 60 * 1000;
+  const COIN_INCOME = 10;
+  const COIN_INCOME_MS = 30 * 1000;
+  const OWNER_USERNAME = 'ryan';
+  const COIN_RAIN_AMOUNT = 100;
+  const COIN_RAIN_CLICK_VALUE = 10;
+  const COIN_RAIN_RARE_CHANCE = 0.0001;
+  const COIN_RAIN_LIFETIME = 20 * 1000; // 20 seconds
+
+  /* ====================== LOADERS ====================== */
+  function loadUsers() {
+    try { const raw = localStorage.getItem(USERS_KEY); if (raw) return new Map(JSON.parse(raw)); } catch(e){}
+    const seed = new Map();
+    seed.set('alex', { email: 'alex@outlook.com', password: 'windows11' });
+    seed.set('demo', { email: 'demo@example.com', password: '123456' });
+    return seed;
+  }
+  function saveUsers(map) { try { localStorage.setItem(USERS_KEY, JSON.stringify(Array.from(map.entries()))); } catch(e){} }
+  const users = loadUsers();
+  saveUsers(users);
+
+  function loadProfiles() { try { const raw = localStorage.getItem(PROFILES_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveProfiles(p) { try { localStorage.setItem(PROFILES_KEY, JSON.stringify(p)); } catch(e){} }
+  let profiles = loadProfiles();
+
+  function loadRolesOwned() {
+    try {
+      const raw = localStorage.getItem(ROLES_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const migrated = {};
+        Object.keys(parsed).forEach(u => {
+          if (Array.isArray(parsed[u])) migrated[u] = { owned: parsed[u], equipped: [parsed[u][0] || 'Member'] };
+          else migrated[u] = { owned: parsed[u].owned || [], equipped: parsed[u].equipped || [] };
+        });
+        return migrated;
+      }
+    } catch(e){}
+    return {};
+  }
+  function saveRolesOwned(r) { try { localStorage.setItem(ROLES_KEY, JSON.stringify(r)); } catch(e){} }
+  let rolesOwned = loadRolesOwned();
+
+  function loadCoins() { try { const raw = localStorage.getItem(COINS_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveCoins(c) { try { localStorage.setItem(COINS_KEY, JSON.stringify(c)); } catch(e){} }
+  let coins = loadCoins();
+
+  function loadOwned() { try { const raw = localStorage.getItem(OWNED_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveOwned(o) { try { localStorage.setItem(OWNED_KEY, JSON.stringify(o)); } catch(e){} }
+  let owned = loadOwned();
+
+  function loadInstalled() { try { const raw = localStorage.getItem(INSTALLED_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveInstalled(i) { try { localStorage.setItem(INSTALLED_KEY, JSON.stringify(i)); } catch(e){} }
+  let installed = loadInstalled();
+
+  function loadRoulette() { try { const raw = localStorage.getItem(ROULETTE_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveRoulette(r) { try { localStorage.setItem(ROULETTE_KEY, JSON.stringify(r)); } catch(e){} }
+  let rouletteState = loadRoulette();
+
+  function loadCoinRain() { try { const raw = localStorage.getItem(COIN_RAIN_KEY); if (raw) return JSON.parse(raw); } catch(e){} return null; }
+  function saveCoinRain(c) { try { localStorage.setItem(COIN_RAIN_KEY, JSON.stringify(c)); } catch(e){} }
+  let coinRain = loadCoinRain();
+
+  function loadBans() { try { const raw = localStorage.getItem(BANS_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveBans(b) { try { localStorage.setItem(BANS_KEY, JSON.stringify(b)); } catch(e){} }
+  let bans = loadBans();
+
+  // Sounds: { username: [ { id, name, src, createdAt } ] }
+  function loadSounds() { try { const raw = localStorage.getItem(SOUNDS_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveSounds(s) { try { localStorage.setItem(SOUNDS_KEY, JSON.stringify(s)); } catch(e){} }
+  let sounds = loadSounds();
+
+  if (!users.has(OWNER_USERNAME)) {
+    users.set(OWNER_USERNAME, { email: 'ryan@windows.local', password: '0101' });
+    saveUsers(users);
+  }
+  if (!rolesOwned[OWNER_USERNAME]) {
+    rolesOwned[OWNER_USERNAME] = { owned: ['Owner', 'Moderator', 'VIP'], equipped: ['Owner'] };
+    saveRolesOwned(rolesOwned);
+  }
+  if (coins[OWNER_USERNAME] === undefined) { coins[OWNER_USERNAME] = 0; saveCoins(coins); }
+
+  function getProfile(username) {
+    if (!profiles[username]) {
+      profiles[username] = {
+        displayName: username,
+        pfp: null,
+        role: username === OWNER_USERNAME ? 'Owner' : 'Member'
+      };
+      saveProfiles(profiles);
+    }
+    return profiles[username];
+  }
+
+  function getRoleRecord(username) {
+    if (!rolesOwned[username]) {
+      if (username === OWNER_USERNAME) rolesOwned[username] = { owned: ['Owner', 'Moderator', 'VIP'], equipped: ['Owner'] };
+      else rolesOwned[username] = { owned: ['Member'], equipped: ['Member'] };
+      saveRolesOwned(rolesOwned);
+    }
+    if (Array.isArray(rolesOwned[username])) {
+      rolesOwned[username] = { owned: rolesOwned[username], equipped: [rolesOwned[username][0] || 'Member'] };
+      saveRolesOwned(rolesOwned);
+    }
+    if (!Array.isArray(rolesOwned[username].owned)) rolesOwned[username].owned = ['Member'];
+    if (!Array.isArray(rolesOwned[username].equipped)) rolesOwned[username].equipped = [rolesOwned[username].owned[0] || 'Member'];
+    return rolesOwned[username];
+  }
+
+  function getRolesFor(username) { return getRoleRecord(username).owned; }
+  function getEquippedRoles(username) { return getRoleRecord(username).equipped; }
+  function getCoins(username) { return coins[username] || 0; }
+  function addCoins(username, amount) {
+    coins[username] = (coins[username] || 0) + amount;
+    saveCoins(coins);
+    if (currentUser && currentUser.username === username) refreshUserUI();
+  }
+  function removeCoins(username, amount) {
+    coins[username] = Math.max(0, (coins[username] || 0) - amount);
+    saveCoins(coins);
+    if (currentUser && currentUser.username === username) refreshUserUI();
+  }
+  function isBanned(username) { return !!bans[username]; }
+
+  function loadGames() {
+    try { const raw = localStorage.getItem(GAMES_KEY); if (raw) return JSON.parse(raw); } catch(e){}
+    return [
+      { id: 'seed-1', title: '2048', link: 'https://play2048.co/', image: 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 125"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2b179"/><stop offset="1" stop-color="#edc22e"/></linearGradient></defs><rect width="200" height="125" fill="url(#g)"/><text x="100" y="72" font-size="42" font-family="Segoe UI,Arial" font-weight="bold" fill="#fff" text-anchor="middle">2048</text></svg>'), author: 'ryan', owner: true, price: 100, createdAt: Date.now() - 86400000 },
+      { id: 'seed-2', title: 'Hextris', link: 'https://hextris.io/', image: 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 125"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4776e6"/><stop offset="1" stop-color="#8e54e9"/></linearGradient></defs><rect width="200" height="125" fill="url(#g)"/><text x="100" y="72" font-size="30" font-family="Segoe UI,Arial" font-weight="bold" fill="#fff" text-anchor="middle">Hextris</text></svg>'), author: 'alex', owner: false, price: 250, createdAt: Date.now() - 43200000 }
+    ];
+  }
+  function saveGames(list) { try { localStorage.setItem(GAMES_KEY, JSON.stringify(list)); } catch(e){} }
+  let games = loadGames();
+  saveGames(games);
+
+  function loadPartnered() {
+    try { const raw = localStorage.getItem(PARTNER_KEY); if (raw) return JSON.parse(raw); } catch(e){}
+    return [
+      { id: 'p-1', title: 'Spotify', link: 'https://open.spotify.com/', image: 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 125"><rect width="200" height="125" fill="#1DB954"/><circle cx="100" cy="62" r="32" fill="none" stroke="#fff" stroke-width="6"/><path d="M82 55 Q100 48 118 55" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M84 65 Q100 58 116 65" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M86 74 Q100 68 114 74" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/></svg>'), author: 'ryan', owner: true, partnered: true, price: 0, createdAt: Date.now() - 172800000 },
+      { id: 'p-2', title: 'YouTube', link: 'https://www.youtube.com/', image: 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 125"><rect width="200" height="125" fill="#FF0000"/><polygon points="88,46 88,79 118,62.5" fill="#fff"/></svg>'), author: 'ryan', owner: true, partnered: true, price: 0, createdAt: Date.now() - 172000000 }
+    ];
+  }
+  function savePartnered(list) { try { localStorage.setItem(PARTNER_KEY, JSON.stringify(list)); } catch(e){} }
+  let partneredApps = loadPartnered();
+  savePartnered(partneredApps);
+
+  function loadChat() {
+    try { const raw = localStorage.getItem(CHAT_KEY); if (raw) return JSON.parse(raw); } catch(e){}
+    return [{ id: 'welcome', username: 'system', text: 'Welcome to LinkVault global chat! Be kind and have fun.', time: Date.now() - 3600000, owner: false, system: true }];
+  }
+  function saveChat(list) { try { localStorage.setItem(CHAT_KEY, JSON.stringify(list.slice(-200))); } catch(e){} }
+  let chatMessages = loadChat();
+
+  function loadIconPositions() { try { const raw = localStorage.getItem(ICONS_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveIconPositions(pos) { try { localStorage.setItem(ICONS_KEY, JSON.stringify(pos)); } catch(e){} }
+  let iconPositions = loadIconPositions();
+
+  function loadWindowState() { try { const raw = localStorage.getItem(WINDOW_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveWindowState(state) { try { localStorage.setItem(WINDOW_KEY, JSON.stringify(state)); } catch(e){} }
+  let windowState = loadWindowState();
+
+  function loadFriends() { try { const raw = localStorage.getItem(FRIENDS_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveFriends(f) { try { localStorage.setItem(FRIENDS_KEY, JSON.stringify(f)); } catch(e){} }
+  let friends = loadFriends();
+
+  function loadRequests() { try { const raw = localStorage.getItem(REQUESTS_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveRequests(r) { try { localStorage.setItem(REQUESTS_KEY, JSON.stringify(r)); } catch(e){} }
+  let friendRequests = loadRequests();
+
+  function loadDMs() { try { const raw = localStorage.getItem(DMS_KEY); if (raw) return JSON.parse(raw); } catch(e){} return {}; }
+  function saveDMs(d) { try { localStorage.setItem(DMS_KEY, JSON.stringify(d)); } catch(e){} }
+  let dms = loadDMs();
+
+  /* ====================== DOM ====================== */
+  const $ = id => document.getElementById(id);
+  const loginScreen = $('login-screen');
+  const bannedScreen = $('banned-screen');
+  const desktop = $('desktop');
+  const messageEl = $('message');
+  const toastEl = $('toast');
+
+  const loginUser = $('login-user'), loginPass = $('login-pass');
+  const signupUser = $('signup-user'), signupEmail = $('signup-email'), signupPass = $('signup-pass');
+  const ownerName = $('owner-name'), ownerPass = $('owner-pass');
+  const btnLogin = $('btn-login'), btnSignup = $('btn-signup'), btnOwner = $('btn-owner');
+
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const panels = { login: $('panel-login'), signup: $('panel-signup'), owner: $('panel-owner') };
+
+  /* ====================== HELPERS ====================== */
+  function setMessage(text, type) { messageEl.textContent = text; messageEl.className = 'message'; if (type) messageEl.classList.add(type); }
+  function showToast(text) { toastEl.textContent = text; toastEl.classList.add('show'); clearTimeout(showToast._t); showToast._t = setTimeout(() => toastEl.classList.remove('show'), 2200); }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function formatTime(ts) { const d = new Date(ts); return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+  function dmKey(u1, u2) { const a = u1.toLowerCase(), b = u2.toLowerCase(); return a < b ? a + '|' + b : b + '|' + a; }
+
+  function roleBadge(role) {
+    const r = (role || 'Member').toLowerCase();
+    const cls = ['owner','member','guest','moderator','vip','jackpot','lucky'].includes(r) ? r : 'default';
+    return `<span class="role-badge ${cls}">${escapeHtml(role || 'Member')}</span>`;
+  }
+  function equippedRoleBadges(username) { return getEquippedRoles(username).map(r => roleBadge(r)).join(''); }
+
+  function switchTab(tabId) {
+    tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+    Object.keys(panels).forEach(k => panels[k].classList.toggle('active', k === tabId));
+    setMessage('LinkVault · Secure sign-in', '');
+    if (tabId === 'login') loginUser.focus();
+    else if (tabId === 'signup') signupUser.focus();
+    else if (tabId === 'owner') ownerName.focus();
+  }
+  tabButtons.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+  /* ====================== BANNED SCREEN ====================== */
+  function showBannedScreen(username) {
+    const ban = bans[username] || {};
+    $('ban-reason').textContent = ban.reason || 'No reason provided.';
+    const when = ban.at ? new Date(ban.at).toLocaleString() : 'unknown';
+    $('ban-meta').textContent = `Banned by ${ban.by || 'an owner'} on ${when}`;
+    loginScreen.classList.add('hidden');
+    desktop.classList.remove('visible');
+    bannedScreen.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function checkBanStatus() {
+    if (!currentUser) return;
+    if (isBanned(currentUser.username)) {
+      showBannedScreen(currentUser.username);
+      currentUser = null;
+    }
+  }
+  setInterval(checkBanStatus, 1500);
+
+  /* ====================== LOGIN ====================== */
+  btnLogin.addEventListener('click', () => {
+    const username = loginUser.value.trim().toLowerCase();
+    const password = loginPass.value;
+    if (!username || !password) return setMessage('Please enter both username and password.', 'error');
+    if (isBanned(username)) {
+      const ban = bans[username];
+      $('ban-reason').textContent = ban.reason || 'No reason provided.';
+      $('ban-meta').textContent = `Banned by ${ban.by || 'an owner'}`;
+      showBannedScreen(username);
+      return;
+    }
+    const user = users.get(username);
+    if (!user) return setMessage('Account not found. Try "alex" / "windows11" or sign up.', 'error');
+    if (user.password !== password) { loginPass.value = ''; return setMessage('Incorrect password. Please try again.', 'error'); }
+    setMessage(`Welcome back, ${username}!`, 'success');
+    loginPass.value = '';
+    setTimeout(() => enterDesktop(username, user.email || '', 'Local account'), 400);
+  });
+  [loginUser, loginPass].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); btnLogin.click(); } }));
+
+  /* ====================== SIGN UP ====================== */
+  btnSignup.addEventListener('click', () => {
+    const usernameRaw = signupUser.value.trim();
+    const username = usernameRaw.toLowerCase();
+    const email = signupEmail.value.trim();
+    const password = signupPass.value;
+    if (!usernameRaw || !password) return setMessage('Username and password are required.', 'error');
+    if (username.length < 2) return setMessage('Username must be at least 2 characters.', 'error');
+    if (!/^[a-z0-9_.-]+$/.test(username)) return setMessage('Username can only contain letters, numbers, . _ -', 'error');
+    if (password.length < 4) return setMessage('Password must be at least 4 characters.', 'error');
+    if (users.has(username)) return setMessage(`Username "${usernameRaw}" is already taken. Please choose another.`, 'error');
+    if (email && (!email.includes('@') || !email.includes('.'))) return setMessage('Please enter a valid email address.', 'error');
+    users.set(username, { email, password });
+    saveUsers(users);
+    getProfile(username);
+    rolesOwned[username] = { owned: ['Member'], equipped: ['Member'] };
+    saveRolesOwned(rolesOwned);
+    coins[username] = 0;
+    saveCoins(coins);
+    setMessage(`Account created for ${usernameRaw}! Signing in...`, 'success');
+    signupUser.value = ''; signupEmail.value = ''; signupPass.value = '';
+    setTimeout(() => enterDesktop(username, email, 'Local account'), 700);
+  });
+  [signupUser, signupEmail, signupPass].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); btnSignup.click(); } }));
+
+  /* ====================== OWNER LOGIN ====================== */
+  btnOwner.addEventListener('click', () => {
+    const name = ownerName.value.trim();
+    const pass = ownerPass.value;
+    if (!name || !pass) return setMessage('Please enter owner credentials.', 'error');
+    if (name.toLowerCase() === OWNER_USERNAME && pass === '0101') {
+      setMessage('OWNER ACCESS GRANTED — Welcome, Ryan.', 'owner');
+      ownerPass.value = '';
+      setTimeout(() => enterDesktop(OWNER_USERNAME, 'ryan@windows.local', 'Owner'), 500);
+    } else {
+      ownerPass.value = '';
+      setMessage('Invalid owner credentials. Access denied.', 'error');
+    }
+  });
+  [ownerName, ownerPass].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); btnOwner.click(); } }));
+
+  /* ====================== SESSION ====================== */
+  let currentUser = null;
+  function hasRole(username, role) { return getRolesFor(username).includes(role); }
+  function isOwner() { return currentUser && hasRole(currentUser.username, 'Owner'); }
+
+  function enterDesktop(username, email, accountType) {
+    if (isBanned(username)) { showBannedScreen(username); return; }
+    currentUser = { username, email, accountType };
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); } catch(e){}
+    getProfile(username);
+    getRoleRecord(username);
+    if (coins[username] === undefined) { coins[username] = 0; saveCoins(coins); }
+    bannedScreen.classList.remove('visible');
+    loginScreen.classList.add('hidden');
+    desktop.classList.add('visible');
+    document.body.classList.toggle('is-owner', isOwner());
+    refreshUserUI();
+    applySavedWallpaper();
+    renderDesktopIcons();
+    renderStartMenu();
+    renderLinkChat();
+    renderProfileSettings();
+    renderRoulette();
+    renderOwnerPanel();
+    renderSoundboard();
+    startClock();
+    startIncomeTimer();
+    checkCoinRain();
+    showToast(`Signed in as ${username}`);
+  }
+
+  function refreshUserUI() {
+    if (!currentUser) return;
+    const prof = getProfile(currentUser.username);
+    const initial = (prof.displayName || currentUser.username).charAt(0).toUpperCase();
+    const avatarEls = ['taskbar-avatar', 'sidebar-avatar', 'account-avatar', 'lc-user-avatar', 'pfp-preview-large', 'preview-avatar'];
+    avatarEls.forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      if (prof.pfp) { el.innerHTML = `<img src="${prof.pfp}" alt="">`; el.style.background = 'none'; }
+      else { el.innerHTML = initial; el.style.background = 'linear-gradient(135deg,#0078d4,#00bcf2)'; }
+    });
+    $('taskbar-username').textContent = prof.displayName || currentUser.username;
+    $('sidebar-username').textContent = prof.displayName || currentUser.username;
+    $('sidebar-role').textContent = getEquippedRoles(currentUser.username).join(', ') || 'Member';
+    $('account-username').textContent = prof.displayName || currentUser.username;
+    $('account-role').textContent = getEquippedRoles(currentUser.username).join(', ');
+    $('info-username').textContent = currentUser.username;
+    $('info-email').textContent = currentUser.email || '(not set)';
+    $('info-type').textContent = currentUser.accountType;
+    $('info-coins').textContent = getCoins(currentUser.username).toLocaleString();
+    $('info-roles').textContent = getRolesFor(currentUser.username).join(', ');
+    $('lc-user-name').textContent = prof.displayName || currentUser.username;
+    $('lc-user-role').textContent = getEquippedRoles(currentUser.username).join(', ') || 'Member';
+    $('preview-name').textContent = prof.displayName || currentUser.username;
+    $('preview-role-badges').innerHTML = equippedRoleBadges(currentUser.username);
+    $('pub-type-row').style.display = isOwner() ? 'block' : 'none';
+    $('coin-balance').textContent = getCoins(currentUser.username).toLocaleString();
+    const rbal = $('roulette-balance');
+    if (rbal) rbal.textContent = getCoins(currentUser.username).toLocaleString() + ' ₵';
+    document.body.classList.toggle('is-owner', isOwner());
+  }
+
+  function signOut() {
+    try { localStorage.removeItem(SESSION_KEY); } catch(e){}
+    currentUser = null;
+    document.body.classList.remove('is-owner');
+    ['settings','store','linkchat','roulette','ownerpanel','soundboard'].forEach(closeApp);
+    $('start-menu').classList.remove('visible');
+    $('game-viewer').classList.remove('visible');
+    $('gv-frame').src = 'about:blank';
+    desktop.classList.remove('visible');
+    bannedScreen.classList.remove('visible');
+    loginScreen.classList.remove('hidden');
+    loginUser.value = ''; loginPass.value = '';
+    setMessage('LinkVault · Secure sign-in', '');
+    loginUser.focus();
+    showToast('Signed out');
+  }
+
+  /* ====================== CLOCK ====================== */
+  function startClock() {
+    function tick() {
+      const d = new Date();
+      let hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const hours12 = hours % 12 || 12;
+      $('tray-time').textContent = `${hours12}:${minutes} ${ampm}`;
+      $('tray-date').textContent = `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;
+    }
+    tick();
+    setInterval(tick, 10000);
+  }
+
+  /* ====================== INCOME TIMER ====================== */
+  function startIncomeTimer() {
+    if (startIncomeTimer._interval) clearInterval(startIncomeTimer._interval);
+    startIncomeTimer._interval = setInterval(() => {
+      if (!currentUser) return;
+      Object.keys(coins).forEach(u => { coins[u] = (coins[u] || 0) + COIN_INCOME; });
+      users.forEach((_, u) => { if (coins[u] === undefined) coins[u] = COIN_INCOME; });
+      saveCoins(coins);
+      refreshUserUI();
+    }, COIN_INCOME_MS);
+  }
+
+  /* ====================== WINDOW MANAGEMENT ====================== */
+  const appWindows = {
+    settings: $('settings-window'),
+    store: $('store-window'),
+    linkchat: $('linkchat-window'),
+    roulette: $('roulette-window'),
+    ownerpanel: $('ownerpanel-window'),
+    soundboard: $('soundboard-window')
+  };
+  let zTop = 900;
+
+  function bringToFront(appId) { zTop++; appWindows[appId].style.zIndex = zTop; }
+
+  function openApp(appId) {
+    const win = appWindows[appId];
+    if (!win) return;
+    if (appId === 'ownerpanel' && !isOwner()) { showToast('Owners only'); return; }
+    $('start-menu').classList.remove('visible');
+    win.classList.remove('visible');
+    void win.offsetWidth;
+    win.classList.add('visible');
+    win.classList.remove('minimized');
+    applyWindowState(appId);
+    bringToFront(appId);
+    updateTaskbar();
+    if (appId === 'store') { renderStore(); renderPartnered(); renderOwned(); }
+    if (appId === 'linkchat') renderLinkChat();
+    if (appId === 'settings') renderProfileSettings();
+    if (appId === 'roulette') renderRoulette();
+    if (appId === 'ownerpanel') renderOwnerPanel();
+    if (appId === 'soundboard') renderSoundboard();
+  }
+
+  function closeApp(appId) {
+    const win = appWindows[appId];
+    if (!win) return;
+    win.classList.remove('visible', 'maximized', 'minimized');
+    updateTaskbar();
+  }
+
+  function minimizeApp(appId) {
+    const win = appWindows[appId];
+    if (!win) return;
+    win.classList.add('minimized');
+    updateTaskbar();
+  }
+
+  function toggleMaximize(appId) {
+    const win = appWindows[appId];
+    if (!win) return;
+    if (win.classList.contains('maximized')) {
+      win.classList.remove('maximized');
+      applyWindowState(appId);
+    } else {
+      win.classList.add('maximized');
+    }
+    bringToFront(appId);
+  }
+
+  function applyWindowState(appId) {
+    const win = appWindows[appId];
+    const st = windowState[appId];
+    if (st && !win.classList.contains('maximized')) {
+      win.style.top = st.top + 'px';
+      win.style.left = st.left + 'px';
+      win.style.width = st.width + 'px';
+      win.style.height = st.height + 'px';
+    }
+  }
+
+  function saveWindowPosition(appId) {
+    const win = appWindows[appId];
+    if (win.classList.contains('maximized')) return;
+    windowState[appId] = { top: win.offsetTop, left: win.offsetLeft, width: win.offsetWidth, height: win.offsetHeight };
+    saveWindowState(windowState);
+  }
+
+  document.querySelectorAll('[data-drag]').forEach(handle => {
+    const win = handle.closest('.app-window');
+    let dragging = false, startX, startY, origX, origY;
+    handle.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.window-controls')) return;
+      if (win.classList.contains('maximized')) return;
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      origX = win.offsetLeft; origY = win.offsetTop;
+      bringToFront(win.dataset.app);
+      document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      let nx = origX + (e.clientX - startX);
+      let ny = origY + (e.clientY - startY);
+      ny = Math.max(0, Math.min(ny, window.innerHeight - 48 - 40));
+      nx = Math.max(-win.offsetWidth + 100, Math.min(nx, window.innerWidth - 100));
+      win.style.left = nx + 'px';
+      win.style.top = ny + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      if (dragging) { dragging = false; document.body.style.userSelect = ''; saveWindowPosition(win.dataset.app); }
+    });
+  });
+
+  Object.keys(appWindows).forEach(appId => {
+    appWindows[appId].addEventListener('mousedown', () => {
+      if (!appWindows[appId].classList.contains('minimized')) bringToFront(appId);
+      updateTaskbar();
+    });
+  });
+
+  document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); closeApp(btn.dataset.close); }));
+  document.querySelectorAll('[data-min]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); minimizeApp(btn.dataset.min); }));
+  document.querySelectorAll('[data-max]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); toggleMaximize(btn.dataset.max); }));
+
+  function updateTaskbar() {
+    document.querySelectorAll('[data-app-btn]').forEach(btn => {
+      const appId = btn.dataset.appBtn;
+      const win = appWindows[appId];
+      btn.classList.remove('active', 'minimized');
+      if (win.classList.contains('visible')) {
+        if (win.classList.contains('minimized')) btn.classList.add('minimized');
+        else btn.classList.add('active');
+      }
+    });
+  }
+
+  document.querySelectorAll('[data-app-btn]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const appId = btn.dataset.appBtn;
+      if (appId === 'ownerpanel' && !isOwner()) { showToast('Owners only'); return; }
+      const win = appWindows[appId];
+      if (!win.classList.contains('visible')) openApp(appId);
+      else if (win.classList.contains('minimized')) { win.classList.remove('minimized'); bringToFront(appId); updateTaskbar(); }
+      else minimizeApp(appId);
+    });
+  });
+
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+      const sec = $('section-' + item.dataset.section);
+      if (sec) sec.classList.add('active');
+      if (item.dataset.section === 'profile') renderProfileSettings();
+    });
+  });
+
+  /* ====================== DESKTOP ICONS ====================== */
+  const desktopIcons = $('desktop-icons');
+
+  function renderDesktopIcons() {
+    desktopIcons.innerHTML = '';
+    if (!currentUser) return;
+    const myInstalled = installed[currentUser.username] || [];
+    const myOwned = owned[currentUser.username] || [];
+    const visibleIds = Array.from(new Set([...myInstalled, ...myOwned]));
+    const allItems = [...games, ...partneredApps].filter(g => visibleIds.includes(g.id));
+
+    if (!allItems.length) {
+      const hint = document.createElement('div');
+      hint.style.cssText = 'color:rgba(255,255,255,.4);font-size:12px;padding:8px;text-shadow:0 1px 2px rgba(0,0,0,.6)';
+      hint.textContent = 'Download apps from LinkStore to see them here.';
+      desktopIcons.appendChild(hint);
+      return;
+    }
+
+    allItems.forEach(item => {
+      const icon = document.createElement('div');
+      icon.className = 'desktop-icon';
+      icon.dataset.gameId = item.id;
+      icon.dataset.key = 'game:' + item.id;
+      const img = item.image ? `<img class="icon-img" src="${item.image}" alt="">` : '<svg class="icon-img" viewBox="0 0 24 24" fill="none" stroke="#4cc2ff" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="16" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg>';
+      icon.innerHTML = `${img}<span class="icon-label">${escapeHtml(item.title)}</span>`;
+      attachIconHandlers(icon);
+      desktopIcons.appendChild(icon);
+    });
+    requestAnimationFrame(() => applyIconPositions());
+  }
+
+  function applyIconPositions() {
+    document.querySelectorAll('.desktop-icon').forEach(icon => {
+      const pos = iconPositions[icon.dataset.key];
+      if (pos) {
+        icon.style.position = 'absolute';
+        icon.style.left = pos.x + 'px';
+        icon.style.top = pos.y + 'px';
+      }
+    });
+  }
+
+  function attachIconHandlers(icon) {
+    let wasDragged = false, dragStartX, dragStartY, iconStartX, iconStartY;
+    icon.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      wasDragged = false;
+      dragStartX = e.clientX; dragStartY = e.clientY;
+      const rect = icon.getBoundingClientRect();
+      const parentRect = desktopIcons.getBoundingClientRect();
+      iconStartX = rect.left - parentRect.left;
+      iconStartY = rect.top - parentRect.top;
+      icon.classList.add('dragging');
+      function onMove(ev) {
+        const dx = ev.clientX - dragStartX;
+        const dy = ev.clientY - dragStartY;
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) wasDragged = true;
+        if (!wasDragged) return;
+        icon.style.position = 'absolute';
+        icon.style.left = (iconStartX + dx) + 'px';
+        icon.style.top = (iconStartY + dy) + 'px';
+      }
+      function onUp() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        icon.classList.remove('dragging');
+        if (wasDragged) {
+          iconPositions[icon.dataset.key] = { x: parseInt(icon.style.left), y: parseInt(icon.style.top) };
+          saveIconPositions(iconPositions);
+        }
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+    icon.addEventListener('click', (e) => {
+      if (wasDragged) { wasDragged = false; return; }
+      e.stopPropagation();
+      document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+      icon.classList.add('selected');
+    });
+    icon.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      if (icon.dataset.gameId) {
+        const item = [...games, ...partneredApps].find(g => g.id === icon.dataset.gameId);
+        if (item) launchApp(item);
+      }
+    });
+  }
+
+  desktop.addEventListener('click', (e) => {
+    if (e.target === desktop || e.target === $('wallpaper') || e.target === desktopIcons) {
+      document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+    }
+  });
+
+  /* ====================== START MENU ====================== */
+  const startMenu = $('start-menu');
+  const startBtn = $('start-btn');
+  const startAppsGrid = $('start-apps-grid');
+
+  function renderStartMenu() {
+    startAppsGrid.innerHTML = '';
+    const apps = [
+      { app: 'soundboard', label: 'Soundboard', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' },
+      { app: 'linkchat', label: 'LinkChat', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="#5865f2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' },
+      { app: 'roulette', label: 'Roulette', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>' },
+      { app: 'settings', label: 'Settings', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="#4cc2ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>' },
+      { app: 'store', label: 'LinkStore', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="#4cc2ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><path d="M3 9h18"/><path d="M9 13h6"/></svg>' }
+    ];
+    if (isOwner()) {
+      apps.push({ app: 'ownerpanel', label: 'Owner', ownerOnly: true, svg: '<svg viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>' });
+    }
+    apps.push({ signout: true, label: 'Sign out', svg: '<svg viewBox="0 0 24 24" fill="none" stroke="#4cc2ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>' });
+    apps.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'start-app' + (item.ownerOnly ? ' owner-only' : '');
+      btn.type = 'button';
+      btn.innerHTML = `${item.svg}<span>${item.label}</span>`;
+      btn.addEventListener('click', () => { if (item.signout) signOut(); else openApp(item.app); });
+      startAppsGrid.appendChild(btn);
+    });
+  }
+
+  startBtn.addEventListener('click', (e) => { e.stopPropagation(); startMenu.classList.toggle('visible'); });
+  document.addEventListener('click', (e) => {
+    if (!startMenu.contains(e.target) && e.target !== startBtn && !startBtn.contains(e.target)) {
+      startMenu.classList.remove('visible');
+    }
+  });
+
+  $('user-chip').addEventListener('click', () => {
+    openApp('settings');
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    document.querySelector('.sidebar-item[data-section="profile"]').classList.add('active');
+    document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+    $('section-profile').classList.add('active');
+    renderProfileSettings();
+  });
+  $('signout-btn').addEventListener('click', signOut);
+
+  /* ====================== WALLPAPERS ====================== */
+  const wallpapers = [
+    { name: 'Bloom',  css: 'radial-gradient(circle at 30% 20%, #1e3a4b 0%, #0a1a24 80%)' },
+    { name: 'Sunset', css: 'linear-gradient(135deg, #ff7e5f 0%, #feb47b 50%, #ff6a88 100%)' },
+    { name: 'Ocean',  css: 'linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)' },
+    { name: 'Forest', css: 'linear-gradient(135deg, #134e5e 0%, #71b280 100%)' },
+    { name: 'Purple', css: 'linear-gradient(135deg, #4776e6 0%, #8e54e9 100%)' },
+    { name: 'Mono',   css: 'linear-gradient(135deg, #232526 0%, #414345 100%)' },
+    { name: 'Candy',  css: 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%)' },
+    { name: 'Space',  css: 'radial-gradient(circle at 50% 50%, #2c3e50 0%, #000000 100%)' }
+  ];
+  const colors = [
+    { name: 'Blue',   css: '#0078d4' }, { name: 'Teal',   css: '#008080' }, { name: 'Green',  css: '#107c10' },
+    { name: 'Red',    css: '#d13438' }, { name: 'Orange', css: '#ff8c00' }, { name: 'Purple', css: '#8764b8' },
+    { name: 'Pink',   css: '#e3008c' }, { name: 'Dark',   css: '#1f1f1f' }
+  ];
+  const wallpaperGrid = $('wallpaper-grid');
+  const colorSwatches = $('color-swatches');
+  const wallpaperEl = $('wallpaper');
+  let currentWallpaper = { wp: 0, color: null, custom: null };
+
+  wallpapers.forEach((wp, i) => {
+    const div = document.createElement('div');
+    div.className = 'wallpaper-item';
+    div.dataset.wp = i;
+    div.style.background = wp.css;
+    div.innerHTML = `<span class="wp-check">✓</span><span class="wp-label">${wp.name}</span>`;
+    div.addEventListener('click', () => setWallpaper(i, null, null));
+    wallpaperGrid.appendChild(div);
+  });
+  colors.forEach((c, i) => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch';
+    sw.dataset.color = i;
+    sw.style.background = c.css;
+    sw.title = c.name;
+    sw.addEventListener('click', () => setWallpaper(null, i, null));
+    colorSwatches.appendChild(sw);
+  });
+
+  $('upload-wallpaper-btn').addEventListener('click', () => $('wallpaper-file-input').click());
+  $('wallpaper-file-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return showToast('Please choose an image file');
+    if (file.size > 8 * 1024 * 1024) return showToast('Image must be under 8MB');
+    const reader = new FileReader();
+    reader.onload = (ev) => { setWallpaper(null, null, ev.target.result); showToast('Custom wallpaper applied'); };
+    reader.readAsDataURL(file);
+  });
+  $('clear-custom-wallpaper').addEventListener('click', () => {
+    currentWallpaper.custom = null;
+    setWallpaper(0, null, null);
+    showToast('Custom wallpaper removed');
+  });
+
+  function setWallpaper(wpIndex, colorIndex, customData) {
+    if (customData) {
+      currentWallpaper = { wp: null, color: null, custom: customData };
+      wallpaperEl.style.background = `url(${customData}) center/cover no-repeat`;
+    } else if (wpIndex !== null) {
+      currentWallpaper = { wp: wpIndex, color: null, custom: null };
+      wallpaperEl.style.background = wallpapers[wpIndex].css;
+    } else if (colorIndex !== null) {
+      currentWallpaper = { wp: null, color: colorIndex, custom: null };
+      wallpaperEl.style.background = colors[colorIndex].css;
+    }
+    highlightSelection();
+    $('clear-custom-wallpaper').style.display = currentWallpaper.custom ? 'inline-flex' : 'none';
+    try { localStorage.setItem(WALLPAPER_KEY, JSON.stringify(currentWallpaper)); } catch(e){}
+  }
+  function highlightSelection() {
+    document.querySelectorAll('.wallpaper-item').forEach(el => el.classList.toggle('selected', Number(el.dataset.wp) === currentWallpaper.wp));
+    document.querySelectorAll('.color-swatch').forEach(el => el.classList.toggle('selected', Number(el.dataset.color) === currentWallpaper.color));
+  }
+  function applySavedWallpaper() {
+    try { const saved = JSON.parse(localStorage.getItem(WALLPAPER_KEY)); if (saved) currentWallpaper = saved; } catch(e){}
+    if (currentWallpaper.custom) {
+      wallpaperEl.style.background = `url(${currentWallpaper.custom}) center/cover no-repeat`;
+      $('clear-custom-wallpaper').style.display = 'inline-flex';
+    } else if (currentWallpaper.wp !== null && currentWallpaper.wp !== undefined) {
+      wallpaperEl.style.background = wallpapers[currentWallpaper.wp].css;
+    } else if (currentWallpaper.color !== null && currentWallpaper.color !== undefined) {
+      wallpaperEl.style.background = colors[currentWallpaper.color].css;
+    } else {
+      wallpaperEl.style.background = wallpapers[0].css;
+    }
+    highlightSelection();
+  }
+
+  /* ====================== PROFILE SETTINGS ====================== */
+  let pendingPfp = null;
+
+  function renderProfileSettings() {
+    if (!currentUser) return;
+    const prof = getProfile(currentUser.username);
+    const rec = getRoleRecord(currentUser.username);
+    $('profile-display-name').value = prof.displayName || currentUser.username;
+
+    const list = $('my-roles-list');
+    list.innerHTML = '';
+    rec.owned.forEach(r => {
+      const equipped = rec.equipped.includes(r);
+      const chip = document.createElement('div');
+      chip.className = 'role-chip' + (equipped ? ' active' : '');
+      const canRemove = !(currentUser.username === OWNER_USERNAME && r === 'Owner');
+      chip.innerHTML = `<span>${escapeHtml(r)}</span>${canRemove ? '<button class="remove-role" title="Remove role">✕</button>' : ''}`;
+      chip.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-role')) return;
+        if (equipped) {
+          if (rec.equipped.length <= 1) { showToast('At least one role must be equipped'); return; }
+          rec.equipped = rec.equipped.filter(x => x !== r);
+        } else {
+          rec.equipped.push(r);
+        }
+        saveRolesOwned(rolesOwned);
+        refreshUserUI();
+        renderProfileSettings();
+      });
+      const rm = chip.querySelector('.remove-role');
+      if (rm) rm.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (rec.owned.length <= 1) { showToast('You must keep at least one role'); return; }
+        rec.owned = rec.owned.filter(x => x !== r);
+        rec.equipped = rec.equipped.filter(x => x !== r);
+        if (rec.equipped.length === 0) rec.equipped = [rec.owned[0]];
+        saveRolesOwned(rolesOwned);
+        refreshUserUI();
+        renderProfileSettings();
+        showToast(`Removed role: ${r}`);
+      });
+      list.appendChild(chip);
+    });
+
+    const initial = (prof.displayName || currentUser.username).charAt(0).toUpperCase();
+    const previewAvatar = $('preview-avatar');
+    if (prof.pfp) { previewAvatar.innerHTML = `<img src="${prof.pfp}" alt="">`; previewAvatar.style.background = 'none'; }
+    else { previewAvatar.textContent = initial; previewAvatar.style.background = 'linear-gradient(135deg,#0078d4,#00bcf2)'; }
+    $('preview-name').textContent = prof.displayName || currentUser.username;
+    $('preview-role-badges').innerHTML = equippedRoleBadges(currentUser.username);
+    const pfpLarge = $('pfp-preview-large');
+    if (prof.pfp) { pfpLarge.innerHTML = `<img src="${prof.pfp}" alt="">`; pfpLarge.style.background = 'none'; }
+    else { pfpLarge.textContent = initial; pfpLarge.style.background = 'linear-gradient(135deg,#0078d4,#00bcf2)'; }
+    pendingPfp = null;
+  }
+
+  $('pfp-upload-btn').addEventListener('click', () => $('pfp-file-input').click());
+  $('pfp-file-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return showToast('Please choose an image file');
+    if (file.size > 3 * 1024 * 1024) return showToast('Image must be under 3MB');
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      pendingPfp = ev.target.result;
+      $('pfp-preview-large').innerHTML = `<img src="${pendingPfp}" alt="">`;
+      $('pfp-preview-large').style.background = 'none';
+      $('preview-avatar').innerHTML = `<img src="${pendingPfp}" alt="">`;
+      $('preview-avatar').style.background = 'none';
+      showToast('Photo ready — click Save profile');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $('pfp-clear-btn').addEventListener('click', () => {
+    pendingPfp = '';
+    const initial = $('profile-display-name').value.trim().charAt(0).toUpperCase() || 'U';
+    $('pfp-preview-large').innerHTML = initial;
+    $('pfp-preview-large').style.background = 'linear-gradient(135deg,#0078d4,#00bcf2)';
+    $('preview-avatar').innerHTML = initial;
+    $('preview-avatar').style.background = 'linear-gradient(135deg,#0078d4,#00bcf2)';
+  });
+
+  $('profile-display-name').addEventListener('input', () => {
+    const v = $('profile-display-name').value.trim() || currentUser.username;
+    $('preview-name').textContent = v;
+    if (!pendingPfp) {
+      const initial = v.charAt(0).toUpperCase();
+      $('pfp-preview-large').textContent = initial;
+      $('preview-avatar').textContent = initial;
+    }
+  });
+
+  $('save-profile-btn').addEventListener('click', () => {
+    if (!currentUser) return;
+    const prof = getProfile(currentUser.username);
+    const newName = $('profile-display-name').value.trim() || currentUser.username;
+    prof.displayName = newName;
+    if (pendingPfp !== null) { prof.pfp = pendingPfp || null; pendingPfp = null; }
+    saveProfiles(profiles);
+    refreshUserUI();
+    renderLinkChat();
+    showToast('Profile saved');
+  });
+
+  /* ====================== PROFILE MODAL ====================== */
+  const profileModal = $('profile-modal');
+
+  function openProfileModal(username) {
+    if (!currentUser) return;
+    if (!users.has(username)) { showToast('User not found'); return; }
+    const prof = getProfile(username);
+    const initial = (prof.displayName || username).charAt(0).toUpperCase();
+    const avatarEl = $('pm-avatar');
+    if (prof.pfp) { avatarEl.innerHTML = `<img src="${prof.pfp}" alt="">`; avatarEl.style.background = 'none'; }
+    else { avatarEl.textContent = initial; avatarEl.style.background = 'linear-gradient(135deg,#0078d4,#00bcf2)'; }
+    $('pm-name').textContent = prof.displayName || username;
+    $('pm-username').textContent = '@' + username;
+    $('pm-roles').innerHTML = getEquippedRoles(username).map(r => roleBadge(r)).join('') || roleBadge('Member');
+    $('pm-coins').textContent = getCoins(username).toLocaleString();
+    $('pm-rolecount').textContent = getRolesFor(username).length;
+
+    const actions = $('pm-actions');
+    actions.innerHTML = '';
+    const me = currentUser.username;
+
+    if (username === me) {
+      const btn = document.createElement('button');
+      btn.className = 'dm-btn';
+      btn.textContent = 'Edit your profile';
+      btn.addEventListener('click', () => {
+        profileModal.classList.remove('visible');
+        openApp('settings');
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        document.querySelector('.sidebar-item[data-section="profile"]').classList.add('active');
+        document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+        $('section-profile').classList.add('active');
+        renderProfileSettings();
+      });
+      actions.appendChild(btn);
+    } else {
+      const isFriend = (friends[me] || []).includes(username);
+      const isPending = (friendRequests[username] || []).includes(me);
+      const addBtn = document.createElement('button');
+      if (isFriend) {
+        addBtn.className = 'add-btn friends';
+        addBtn.textContent = '✓ Friends';
+        addBtn.disabled = true;
+      } else if (isPending) {
+        addBtn.className = 'add-btn pending';
+        addBtn.textContent = '⏳ Request Sent';
+        addBtn.disabled = true;
+      } else {
+        addBtn.className = 'add-btn';
+        addBtn.textContent = '+ Add Friend';
+        addBtn.addEventListener('click', () => {
+          friendRequests[username] = friendRequests[username] || [];
+          if (!friendRequests[username].includes(me)) {
+            friendRequests[username].push(me);
+            saveRequests(friendRequests);
+            showToast(`Friend request sent to ${username}`);
+            openProfileModal(username);
+            if (appWindows.linkchat.classList.contains('visible')) renderLinkChat();
+          }
+        });
+      }
+      actions.appendChild(addBtn);
+
+      const dmBtn = document.createElement('button');
+      dmBtn.className = 'dm-btn';
+      dmBtn.textContent = 'Message';
+      dmBtn.addEventListener('click', () => {
+        profileModal.classList.remove('visible');
+        openApp('linkchat');
+        activeServer = 'home';
+        activeChannel = 'dm';
+        activeDMUser = username;
+        document.querySelectorAll('.server-icon').forEach(i => i.classList.toggle('active', i.dataset.server === 'home'));
+        $('discord-server-title').querySelector('span').textContent = 'Home';
+        renderLinkChat();
+      });
+      actions.appendChild(dmBtn);
+
+      if (isOwner() && username !== OWNER_USERNAME) {
+        const banBtn = document.createElement('button');
+        if (isBanned(username)) {
+          banBtn.className = 'ban-btn unban';
+          banBtn.textContent = '✓ Unban';
+          banBtn.addEventListener('click', () => {
+            delete bans[username];
+            saveBans(bans);
+            showToast(`Unbanned ${username}`);
+            openProfileModal(username);
+            renderOwnerPanel();
+          });
+        } else {
+          banBtn.className = 'ban-btn';
+          banBtn.textContent = '🚫 Ban User';
+          banBtn.addEventListener('click', () => {
+            const reason = prompt(`Reason for banning ${username}:`, 'Violating rules') || 'No reason provided.';
+            bans[username] = { reason, at: Date.now(), by: me };
+            saveBans(bans);
+            showToast(`Banned ${username}`);
+            openProfileModal(username);
+            renderOwnerPanel();
+          });
+        }
+        actions.appendChild(banBtn);
+      }
+    }
+
+    profileModal.classList.add('visible');
+  }
+
+  profileModal.addEventListener('click', (e) => {
+    if (e.target === profileModal) profileModal.classList.remove('visible');
+  });
+
+  /* ====================== SOUNDBOARD ====================== */
+  const sbGrid = $('sb-grid');
+  const sbModal = $('sb-modal');
+  let sbTab = 'file';
+  let pendingSoundFile = null;
+
+  function getMySounds() {
+    if (!currentUser) return [];
+    return sounds[currentUser.username] || [];
+  }
+  function setMySounds(list) {
+    if (!currentUser) return;
+    sounds[currentUser.username] = list;
+    saveSounds(sounds);
+  }
+
+  function renderSoundboard() {
+    if (!currentUser) return;
+    const search = ($('sb-search').value || '').trim().toLowerCase();
+    const list = getMySounds().filter(s => !search || s.name.toLowerCase().includes(search));
+    sbGrid.innerHTML = '';
+    if (!list.length) {
+      sbGrid.innerHTML = `<div class="soundboard-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        <div>${search ? 'No sounds match your search.' : 'No sounds yet — click Add Sound to upload or link one!'}</div>
+      </div>`;
+      return;
+    }
+    [...list].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).forEach(snd => {
+      const card = document.createElement('div');
+      card.className = 'sound-card';
+      card.dataset.soundId = snd.id;
+      const isUrl = snd.src && snd.src.startsWith('http');
+      card.innerHTML = `
+        <div class="sound-icon" title="Play">
+          <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <div class="sound-name">${escapeHtml(snd.name)}</div>
+        <div class="sound-meta">${isUrl ? 'URL' : 'Uploaded'}</div>
+        <div class="sound-actions">
+          <button class="del-btn" type="button">Delete</button>
+        </div>`;
+      const icon = card.querySelector('.sound-icon');
+      icon.addEventListener('click', () => playSound(snd, card));
+      card.querySelector('.del-btn').addEventListener('click', () => {
+        if (!confirm(`Delete "${snd.name}"?`)) return;
+        setMySounds(getMySounds().filter(s => s.id !== snd.id));
+        renderSoundboard();
+        showToast('Sound deleted');
+      });
+      sbGrid.appendChild(card);
+    });
+  }
+
+  function playSound(snd, card) {
+    try {
+      const audio = new Audio(snd.src);
+      audio.volume = 0.8;
+      audio.play().catch(err => {
+        showToast('Could not play sound (blocked or bad URL)');
+        console.warn(err);
+      });
+      if (card) {
+        card.classList.add('playing');
+        setTimeout(() => card.classList.remove('playing'), 800);
+      }
+    } catch(e) {
+      showToast('Could not play sound');
+    }
+  }
+
+  $('sb-search').addEventListener('input', renderSoundboard);
+
+  $('sb-add-btn').addEventListener('click', () => {
+    sbModal.classList.add('visible');
+    pendingSoundFile = null;
+    $('sb-name').value = '';
+    $('sb-url').value = '';
+    $('sb-file').value = '';
+  });
+  document.querySelectorAll('.sb-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.sb-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      sbTab = t.dataset.sbTab;
+      $('sb-tab-file').style.display = sbTab === 'file' ? 'block' : 'none';
+      $('sb-tab-url').style.display = sbTab === 'url' ? 'block' : 'none';
+    });
+  });
+  $('sb-cancel').addEventListener('click', () => { sbModal.classList.remove('visible'); pendingSoundFile = null; });
+
+  $('sb-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) { pendingSoundFile = null; return; }
+    if (!file.type.startsWith('audio/')) { showToast('Please choose an audio file'); pendingSoundFile = null; return; }
+    if (file.size > 5 * 1024 * 1024) { showToast('Audio must be under 5MB'); pendingSoundFile = null; return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => { pendingSoundFile = ev.target.result; showToast('Audio loaded — click Save Sound'); };
+    reader.readAsDataURL(file);
+  });
+
+  $('sb-save').addEventListener('click', () => {
+    if (!currentUser) return;
+    const name = $('sb-name').value.trim();
+    if (!name) return showToast('Please enter a sound name');
+    let src = null;
+    if (sbTab === 'file') {
+      if (!pendingSoundFile) return showToast('Please choose an audio file');
+      src = pendingSoundFile;
+    } else {
+      const url = $('sb-url').value.trim();
+      if (!url || !/^https?:\/\//i.test(url)) return showToast('Please enter a valid http(s) audio URL');
+      src = url;
+    }
+    const newSound = {
+      id: 's-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+      name, src,
+      createdAt: Date.now()
+    };
+    setMySounds([...getMySounds(), newSound]);
+    sbModal.classList.remove('visible');
+    pendingSoundFile = null;
+    renderSoundboard();
+    showToast(`Added "${name}"`);
+  });
+
+  /* ====================== LINKSTORE ====================== */
+  const storeGrid = $('store-grid');
+  const partneredGrid = $('partnered-grid');
+  const ownedGrid = $('owned-grid');
+  const storeTabs = document.querySelectorAll('.store-tab');
+  const browseView = $('store-browse-view');
+  const partneredView = $('store-partnered-view');
+  const ownedView = $('store-owned-view');
+  const publishView = $('store-publish-view');
+
+  storeTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      storeTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      browseView.style.display = 'none';
+      partneredView.style.display = 'none';
+      ownedView.style.display = 'none';
+      publishView.style.display = 'none';
+      if (tab.dataset.view === 'browse') { browseView.style.display = 'block'; renderStore(); }
+      else if (tab.dataset.view === 'partnered') { partneredView.style.display = 'block'; renderPartnered(); }
+      else if (tab.dataset.view === 'owned') { ownedView.style.display = 'block'; renderOwned(); }
+      else { publishView.style.display = 'block'; }
+    });
+  });
+
+  function makeCard(item, opts) {
+    const card = document.createElement('div');
+    card.className = 'store-card' + (opts.ownerView ? ' owner-view' : '');
+    const prof = getProfile(item.author);
+    const initial = (prof.displayName || item.author || '?').charAt(0).toUpperCase();
+    const price = item.price || 0;
+    const isBought = currentUser && (owned[currentUser.username] || []).includes(item.id);
+    let badge = '';
+    if (item.partnered) badge = '<span class="card-badge partner">Partnered</span>';
+    else if (item.owner) badge = '<span class="card-badge owner">Owner</span>';
+    if (isBought) badge = '<span class="card-badge owned">Owned</span>' + badge;
+    const deleteBtn = opts.ownerView ? '<button class="delete-game-btn" type="button">Delete</button>' : '';
+    const authorAvatar = prof.pfp ? `<img src="${prof.pfp}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : initial;
+    const priceHtml = price > 0 ? `<div class="card-price"><svg viewBox="0 0 24 24" width="12" height="12" fill="#f1c40f"><circle cx="12" cy="12" r="10"/><text x="12" y="17" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">₵</text></svg>${price}</div>` : `<div class="card-price" style="color:#2ecc71">Free</div>`;
+    const installedState = currentUser && (installed[currentUser.username] || []).includes(item.id);
+    const installBtn = (!opts.ownerView && currentUser && (item.author === currentUser.username || isBought))
+      ? `<button class="install-btn${installedState ? ' installed' : ''}" type="button">${installedState ? 'Installed' : 'Install'}</button>`
+      : '';
+    card.innerHTML = `
+      ${badge}
+      ${deleteBtn}
+      <div class="card-thumb">${item.image ? `<img src="${item.image}" alt="${escapeHtml(item.title)}">` : escapeHtml(item.title.charAt(0).toUpperCase())}</div>
+      <div class="card-info">
+        <div class="card-title">${escapeHtml(item.title)}</div>
+        <div class="card-author"><span class="mini-avatar">${authorAvatar}</span><span>${escapeHtml(prof.displayName || item.author)}</span></div>
+        ${priceHtml}
+      </div>
+      ${installBtn}`;
+    card.addEventListener('click', (e) => {
+      if (e.target.classList.contains('delete-game-btn')) return;
+      if (e.target.classList.contains('install-btn')) return;
+      handleCardClick(item);
+    });
+    if (opts.ownerView) {
+      const delBtn = card.querySelector('.delete-game-btn');
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        opts.onDelete(item.id, item.title);
+      });
+    }
+    const instBtn = card.querySelector('.install-btn');
+    if (instBtn) {
+      instBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        installApp(item.id);
+      });
+    }
+    return card;
+  }
+
+  function installApp(gameId) {
+    if (!currentUser) return;
+    const list = installed[currentUser.username] || [];
+    if (list.includes(gameId)) {
+      installed[currentUser.username] = list.filter(id => id !== gameId);
+      saveInstalled(installed);
+      showToast('Uninstalled');
+    } else {
+      list.push(gameId);
+      installed[currentUser.username] = list;
+      saveInstalled(installed);
+      showToast('Installed to desktop');
+    }
+    renderDesktopIcons();
+    renderStore();
+    renderOwned();
+  }
+
+  function handleCardClick(item) {
+    if (!currentUser) return showToast('Please sign in first');
+    const price = item.price || 0;
+    const isOwn = item.author === currentUser.username;
+    const isBought = (owned[currentUser.username] || []).includes(item.id);
+    if (price === 0 || isOwn || isBought) { launchApp(item); return; }
+    openBuyModal(item);
+  }
+
+  let pendingBuyItem = null;
+  function openBuyModal(item) {
+    pendingBuyItem = item;
+    $('buy-title').textContent = `Buy "${item.title}"`;
+    const authorProf = getProfile(item.author);
+    $('buy-desc').textContent = `From ${authorProf.displayName || item.author}. You'll get instant access after purchase.`;
+    $('buy-price').textContent = (item.price || 0).toLocaleString();
+    $('buy-overlay').classList.add('visible');
+  }
+  $('buy-cancel').addEventListener('click', () => { $('buy-overlay').classList.remove('visible'); pendingBuyItem = null; });
+
+  $('buy-confirm').addEventListener('click', () => {
+    if (!pendingBuyItem || !currentUser) return;
+    const item = pendingBuyItem;
+    const price = item.price || 0;
+    const myCoins = getCoins(currentUser.username);
+    if (myCoins < price) { showToast(`Not enough credits (need ${price})`); return; }
+    removeCoins(currentUser.username, price);
+    const half = Math.floor(price / 2);
+    const otherHalf = price - half;
+    if (item.author !== OWNER_USERNAME) addCoins(item.author, half);
+    else addCoins(OWNER_USERNAME, price);
+    if (item.author !== OWNER_USERNAME) addCoins(OWNER_USERNAME, otherHalf);
+    if (!owned[currentUser.username]) owned[currentUser.username] = [];
+    owned[currentUser.username].push(item.id);
+    saveOwned(owned);
+    $('buy-overlay').classList.remove('visible');
+    showToast(`Purchased "${item.title}" for ${price} ₵`);
+    pendingBuyItem = null;
+    renderStore();
+    renderOwned();
+    renderDesktopIcons();
+  });
+
+  function renderStore() {
+    storeGrid.innerHTML = '';
+    if (!games.length) {
+      storeGrid.innerHTML = `<div class="store-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><path d="M3 9h18"/><path d="M9 13h6"/></svg><div>No games yet.</div></div>`;
+      return;
+    }
+    const ownerMode = isOwner();
+    [...games].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).forEach(game => {
+      storeGrid.appendChild(makeCard(game, {
+        ownerView: ownerMode,
+        onDelete: (id, title) => {
+          if (!isOwner()) { showToast('Only owners can delete'); return; }
+          if (!confirm(`Delete "${title}"?`)) return;
+          games = games.filter(g => g.id !== id);
+          saveGames(games);
+          renderStore();
+          renderDesktopIcons();
+          showToast(`Deleted "${title}"`);
+        }
+      }));
+    });
+  }
+
+  function renderPartnered() {
+    partneredGrid.innerHTML = '';
+    if (!partneredApps.length) {
+      partneredGrid.innerHTML = `<div class="store-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg><div>No partnered apps yet.</div></div>`;
+      return;
+    }
+    const ownerMode = isOwner();
+    [...partneredApps].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).forEach(app => {
+      partneredGrid.appendChild(makeCard(app, {
+        ownerView: ownerMode,
+        onDelete: (id, title) => {
+          if (!isOwner()) { showToast('Only owners can delete'); return; }
+          if (!confirm(`Remove "${title}"?`)) return;
+          partneredApps = partneredApps.filter(g => g.id !== id);
+          savePartnered(partneredApps);
+          renderPartnered();
+          showToast(`Removed "${title}"`);
+        }
+      }));
+    });
+  }
+
+  function renderOwned() {
+    ownedGrid.innerHTML = '';
+    if (!currentUser) return;
+    const myOwned = owned[currentUser.username] || [];
+    const myItems = [...games, ...partneredApps].filter(g => myOwned.includes(g.id));
+    if (!myItems.length) {
+      ownedGrid.innerHTML = `<div class="store-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg><div>You haven't bought anything yet.</div></div>`;
+      return;
+    }
+    myItems.forEach(item => {
+      ownedGrid.appendChild(makeCard(item, { ownerView: false, onDelete: () => {} }));
+    });
+  }
+
+  /* ====================== PUBLISH FORM ====================== */
+  const fileDrop = $('file-drop');
+  const fileInput = $('pub-file');
+  const filePreview = $('file-preview');
+  const fileDropText = $('file-drop-text');
+  let uploadedImageData = null;
+
+  fileDrop.addEventListener('click', () => fileInput.click());
+  fileDrop.addEventListener('dragover', (e) => { e.preventDefault(); fileDrop.classList.add('dragover'); });
+  fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('dragover'));
+  fileDrop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileDrop.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', () => { if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+  function handleFile(file) {
+    if (!file.type.startsWith('image/')) return showToast('Please choose an image file');
+    if (file.size > 5 * 1024 * 1024) return showToast('Image must be under 5MB');
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadedImageData = e.target.result;
+      filePreview.src = uploadedImageData;
+      filePreview.classList.add('visible');
+      fileDropText.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  $('publish-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!currentUser) return showToast('Please sign in first');
+    const title = $('pub-title').value.trim();
+    const link = $('pub-link').value.trim();
+    const price = Math.max(0, Math.min(5000, parseInt($('pub-price').value || '0', 10)));
+    const type = $('pub-type').value;
+    if (!title) return showToast('Please enter a title');
+    if (!link || !/^https?:\/\//i.test(link)) return showToast('Please enter a valid http(s) URL');
+    if (!uploadedImageData) return showToast('Please upload a cover photo');
+    if (type === 'partnered' && !isOwner()) return showToast('Only owners can publish partnered apps');
+
+    const newItem = {
+      id: 'g-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+      title, link, price,
+      image: uploadedImageData,
+      author: currentUser.username,
+      owner: isOwner(),
+      partnered: type === 'partnered',
+      createdAt: Date.now()
+    };
+    if (type === 'partnered') { partneredApps.push(newItem); savePartnered(partneredApps); }
+    else { games.push(newItem); saveGames(games); }
+
+    $('pub-title').value = '';
+    $('pub-link').value = '';
+    $('pub-price').value = '0';
+    fileInput.value = '';
+    filePreview.classList.remove('visible');
+    filePreview.src = '';
+    fileDropText.style.display = 'block';
+    uploadedImageData = null;
+    $('pub-type').value = 'community';
+
+    showToast(`"${title}" published!`);
+    storeTabs.forEach(t => t.classList.remove('active'));
+    document.querySelector('.store-tab[data-view="browse"]').classList.add('active');
+    browseView.style.display = 'block';
+    publishView.style.display = 'none';
+    renderStore();
+  });
+
+  $('pub-cancel').addEventListener('click', () => {
+    storeTabs.forEach(t => t.classList.remove('active'));
+    document.querySelector('.store-tab[data-view="browse"]').classList.add('active');
+    browseView.style.display = 'block';
+    publishView.style.display = 'none';
+  });
+
+  /* ====================== ROULETTE ====================== */
+  const WHEEL_SEGMENTS = [
+    { label: '0', value: 0, color: '#4f545c' },
+    { label: '50', value: 50, color: '#5865f2' },
+    { label: '100', value: 100, color: '#2ecc71' },
+    { label: '200', value: 200, color: '#f1c40f' },
+    { label: '0', value: 0, color: '#4f545c' },
+    { label: '500', value: 500, color: '#e67e22' },
+    { label: '150', value: 150, color: '#1abc9c' },
+    { label: '1000', value: 1000, color: '#e91e63' },
+    { label: '0', value: 0, color: '#4f545c' },
+    { label: '250', value: 250, color: '#9b59b6' },
+    { label: '100', value: 100, color: '#2ecc71' },
+    { label: '5000', value: 5000, color: 'jackpot', jackpot: true }
+  ];
+
+  let rouletteRotation = 0;
+  let spinning = false;
+
+  function drawWheel() {
+    const wheel = $('roulette-wheel');
+    const n = WHEEL_SEGMENTS.length;
+    const anglePer = 360 / n;
+    let svg = '<svg viewBox="0 0 200 200">';
+    WHEEL_SEGMENTS.forEach((seg, i) => {
+      const startAngle = i * anglePer - 90 - anglePer / 2;
+      const endAngle = startAngle + anglePer;
+      const startRad = startAngle * Math.PI / 180;
+      const endRad = endAngle * Math.PI / 180;
+      const cx = 100, cy = 100, r = 100;
+      const x1 = cx + r * Math.cos(startRad);
+      const y1 = cy + r * Math.sin(startRad);
+      const x2 = cx + r * Math.cos(endRad);
+      const y2 = cy + r * Math.sin(endRad);
+      const largeArc = anglePer > 180 ? 1 : 0;
+      const fill = seg.jackpot ? '#f1c40f' : seg.color;
+      svg += `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z" fill="${fill}" stroke="#1a1a1a" stroke-width="0.8"/>`;
+      const midAngle = (startAngle + endAngle) / 2;
+      const midRad = midAngle * Math.PI / 180;
+      const tx = cx + (r * 0.72) * Math.cos(midRad);
+      const ty = cy + (r * 0.72) * Math.sin(midRad);
+      const label = seg.jackpot ? 'JACKPOT' : seg.label;
+      const fontSize = seg.jackpot ? 7 : 9;
+      const fillText = seg.jackpot ? '#1a1a1a' : '#fff';
+      svg += `<text x="${tx}" y="${ty+3}" font-size="${fontSize}" font-weight="bold" fill="${fillText}" text-anchor="middle" font-family="Segoe UI,Arial">${label}</text>`;
+    });
+    svg += '</svg>';
+    wheel.innerHTML = svg;
+  }
+
+  function renderRoulette() {
+    drawWheel();
+    updateRouletteUI();
+    updateResetTimer();
+  }
+
+  function updateRouletteUI() {
+    if (!currentUser) return;
+    const balance = getCoins(currentUser.username);
+    $('roulette-balance').textContent = balance.toLocaleString() + ' ₵';
+    const btn = $('roulette-spin-btn');
+    const st = rouletteState[currentUser.username] || {};
+    const now = Date.now();
+    const freeReady = !st.lastFreeSpin || (now - st.lastFreeSpin) >= ROULETTE_FREE_MS;
+    if (freeReady) { btn.textContent = 'Free Spin!'; btn.disabled = spinning; }
+    else { const canPay = balance >= ROULETTE_PRICE; btn.textContent = `Spin for ${ROULETTE_PRICE} ₵`; btn.disabled = spinning || !canPay; }
+  }
+
+  function updateResetTimer() {
+    if (!currentUser) return;
+    const st = rouletteState[currentUser.username] || {};
+    const now = Date.now();
+    const el = $('roulette-reset-timer');
+    if (!el) return;
+    if (!st.lastFreeSpin || (now - st.lastFreeSpin) >= ROULETTE_FREE_MS) { el.textContent = 'Free spin ready!'; return; }
+    const remaining = ROULETTE_FREE_MS - (now - st.lastFreeSpin);
+    const m = Math.floor(remaining / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    el.textContent = `Free spin in ${m}:${String(s).padStart(2,'0')}`;
+  }
+  setInterval(updateResetTimer, 1000);
+
+  $('roulette-spin-btn').addEventListener('click', () => {
+    if (!currentUser || spinning) return;
+    const st = rouletteState[currentUser.username] || {};
+    const now = Date.now();
+    const freeReady = !st.lastFreeSpin || (now - st.lastFreeSpin) >= ROULETTE_FREE_MS;
+    if (!freeReady) {
+      if (getCoins(currentUser.username) < ROULETTE_PRICE) { showToast('Not enough credits'); return; }
+      removeCoins(currentUser.username, ROULETTE_PRICE);
+    } else {
+      st.lastFreeSpin = now;
+      rouletteState[currentUser.username] = st;
+      saveRoulette(rouletteState);
+    }
+    spinning = true;
+    $('roulette-spin-btn').disabled = true;
+    $('roulette-result').className = 'roulette-result';
+    $('roulette-result').textContent = 'Spinning...';
+    const idx = Math.floor(Math.random() * WHEEL_SEGMENTS.length);
+    const seg = WHEEL_SEGMENTS[idx];
+    const anglePer = 360 / WHEEL_SEGMENTS.length;
+    const targetAngle = 360 * 5 + (360 - (idx * anglePer));
+    rouletteRotation += targetAngle;
+    $('roulette-wheel').style.transform = `rotate(${rouletteRotation}deg)`;
+    setTimeout(() => {
+      spinning = false;
+      const result = $('roulette-result');
+      if (seg.jackpot) {
+        const rec = getRoleRecord(currentUser.username);
+        if (!rec.owned.includes('Jackpot')) rec.owned.push('Jackpot');
+        if (!rec.equipped.includes('Jackpot')) rec.equipped.push('Jackpot');
+        saveRolesOwned(rolesOwned);
+        addCoins(currentUser.username, seg.value);
+        result.className = 'roulette-result jackpot';
+        result.textContent = `🎉 JACKPOT! You won ${seg.value} ₵ and the Jackpot role! 🎉`;
+        refreshUserUI();
+        renderProfileSettings();
+      } else if (seg.value > 0) {
+        addCoins(currentUser.username, seg.value);
+        result.className = 'roulette-result win';
+        result.textContent = `You won ${seg.value} ₵!`;
+      } else {
+        result.className = 'roulette-result lose';
+        result.textContent = 'No luck — try again!';
+      }
+      updateRouletteUI();
+      updateResetTimer();
+      refreshUserUI();
+    }, 4200);
+  });
+
+  /* ====================== OWNER PANEL ====================== */
+  const ALL_ROLES = ['Owner', 'Moderator', 'VIP', 'Member', 'Guest', 'Jackpot', 'Lucky'];
+
+  function renderOwnerPanel() {
+    if (!isOwner()) return;
+    const list = $('owner-user-list');
+    list.innerHTML = '';
+    const allUsers = Array.from(users.keys()).sort();
+    allUsers.forEach(u => {
+      const prof = getProfile(u);
+      const rec = getRoleRecord(u);
+      const userData = users.get(u) || {};
+      const banned = isBanned(u);
+      const row = document.createElement('div');
+      row.className = 'owner-user-row';
+      const initial = (prof.displayName || u).charAt(0).toUpperCase();
+      const avatarContent = prof.pfp ? `<img src="${prof.pfp}" alt="">` : initial;
+      const bannedTag = banned ? '<span class="banned-tag">Banned</span>' : '';
+      row.innerHTML = `
+        <div class="ou-avatar">${avatarContent}</div>
+        <div class="ou-info">
+          <div class="ou-name">${escapeHtml(prof.displayName || u)} <span style="color:#777;font-weight:400">@${escapeHtml(u)}</span>${bannedTag}</div>
+          <div class="ou-roles">${rec.owned.map(r => roleBadge(r)).join('')}</div>
+          <div class="ou-secret">
+            <span>🔒 Password: <span class="pass-value" data-visible="0">••••••••</span></span>
+            <button class="show-pass-btn" type="button" data-pass="${escapeHtml(userData.password || '')}">Show</button>
+          </div>
+          <div class="ou-actions">
+            <select>
+              ${ALL_ROLES.map(r => `<option value="${r}">${r}</option>`).join('')}
+            </select>
+            <button class="add-role-btn" type="button">+ Add Role</button>
+            <button class="ban-btn${banned ? ' unban' : ''}" type="button">${banned ? '✓ Unban' : '🚫 Ban'}</button>
+          </div>
+        </div>
+        <div class="ou-coins">${getCoins(u).toLocaleString()} ₵</div>`;
+      const passSpan = row.querySelector('.pass-value');
+      const passBtn = row.querySelector('.show-pass-btn');
+      passBtn.addEventListener('click', () => {
+        if (passSpan.dataset.visible === '1') {
+          passSpan.textContent = '••••••••';
+          passSpan.dataset.visible = '0';
+          passBtn.textContent = 'Show';
+        } else {
+          passSpan.textContent = passBtn.dataset.pass || '(none)';
+          passSpan.dataset.visible = '1';
+          passBtn.textContent = 'Hide';
+        }
+      });
+      const select = row.querySelector('select');
+      const addBtn = row.querySelector('.add-role-btn');
+      addBtn.addEventListener('click', () => {
+        const role = select.value;
+        if (!rec.owned.includes(role)) {
+          rec.owned.push(role);
+          rec.equipped.push(role);
+          saveRolesOwned(rolesOwned);
+          showToast(`Gave ${role} to ${u}`);
+          renderOwnerPanel();
+          if (currentUser && u === currentUser.username) { refreshUserUI(); renderProfileSettings(); }
+          if (appWindows.linkchat.classList.contains('visible')) renderLinkChat();
+        } else {
+          showToast(`${u} already has ${role}`);
+        }
+      });
+      const banBtn = row.querySelector('.ban-btn');
+      banBtn.addEventListener('click', () => {
+        if (u === OWNER_USERNAME) { showToast("Can't ban the owner"); return; }
+        if (banned) {
+          delete bans[u];
+          saveBans(bans);
+          showToast(`Unbanned ${u}`);
+        } else {
+          const reason = prompt(`Reason for banning ${u}:`, 'Violating rules') || 'No reason provided.';
+          bans[u] = { reason, at: Date.now(), by: currentUser.username };
+          saveBans(bans);
+          showToast(`Banned ${u}`);
+        }
+        renderOwnerPanel();
+      });
+      list.appendChild(row);
+    });
+
+    const stats = $('owner-stats');
+    const totalCoins = Object.values(coins).reduce((a, b) => a + (b || 0), 0);
+    const bannedCount = Object.keys(bans).length;
+    stats.innerHTML = `
+      <div class="owner-stat-row"><span class="label">Total users</span><span class="value">${users.size}</span></div>
+      <div class="owner-stat-row"><span class="label">Banned users</span><span class="value">${bannedCount}</span></div>
+      <div class="owner-stat-row"><span class="label">Total credits in circulation</span><span class="value">${totalCoins.toLocaleString()} ₵</span></div>
+      <div class="owner-stat-row"><span class="label">Ryan's balance</span><span class="value">${getCoins(OWNER_USERNAME).toLocaleString()} ₵</span></div>
+      <div class="owner-stat-row"><span class="label">Total listings</span><span class="value">${games.length + partneredApps.length}</span></div>`;
+  }
+
+  $('spawn-coins-btn').addEventListener('click', () => {
+    if (!isOwner()) return;
+    triggerCoinRain();
+    showToast('Spawned 100 coins for everyone!');
+  });
+
+  $('reset-coins-btn').addEventListener('click', () => {
+    if (!isOwner()) return;
+    if (!confirm('Reset everyone\'s coins to 0? This cannot be undone.')) return;
+    Object.keys(coins).forEach(u => { coins[u] = 0; });
+    users.forEach((_, u) => { coins[u] = 0; });
+    saveCoins(coins);
+    refreshUserUI();
+    renderOwnerPanel();
+    if (appWindows.roulette.classList.contains('visible')) updateRouletteUI();
+    showToast('Everyone\'s coins reset to 0');
+  });
+
+  /* ====================== COIN RAIN ====================== */
+  const coinRainEl = $('coin-rain');
+  let coinRainTimeouts = [];
+
+  function triggerCoinRain() {
+    if (!currentUser) return;
+    const rainId = 'rain-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    coinRain = { id: rainId, spawnedAt: Date.now(), by: currentUser.username };
+    saveCoinRain(coinRain);
+    spawnCoinRain(rainId);
+  }
+
+  function spawnCoinRain(rainId) {
+    coinRainTimeouts.forEach(t => clearTimeout(t));
+    coinRainTimeouts = [];
+    coinRainEl.innerHTML = '';
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const count = COIN_RAIN_AMOUNT;
+    const positions = [];
+    for (let i = 0; i < count; i++) {
+      positions.push({ x: 30 + Math.random() * (w - 90), y: 70 + Math.random() * (h - 160) });
+    }
+    positions.forEach((pos, i) => {
+      const isRare = Math.random() < COIN_RAIN_RARE_CHANCE;
+      const coin = document.createElement('div');
+      coin.className = 'spawned-coin' + (isRare ? ' rare' : '');
+      coin.textContent = isRare ? '★' : '₵';
+      coin.style.left = pos.x + 'px';
+      coin.style.top = pos.y + 'px';
+      coin.style.animationDelay = (i * 8) + 'ms, 0s';
+      coin.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (coin.classList.contains('collected')) return;
+        coin.classList.add('collected');
+        if (isRare) {
+          const rec = getRoleRecord(currentUser.username);
+          if (!rec.owned.includes('Lucky')) rec.owned.push('Lucky');
+          if (!rec.equipped.includes('Lucky')) rec.equipped.push('Lucky');
+          saveRolesOwned(rolesOwned);
+          addCoins(currentUser.username, COIN_RAIN_CLICK_VALUE);
+          showToast('🌟 RARE COIN! +10 ₵ and the Lucky role!');
+          refreshUserUI();
+          if (appWindows.settings.classList.contains('visible')) renderProfileSettings();
+          if (appWindows.linkchat.classList.contains('visible')) renderLinkChat();
+        } else {
+          addCoins(currentUser.username, COIN_RAIN_CLICK_VALUE);
+          showToast('+10 ₵');
+        }
+        setTimeout(() => coin.remove(), 400);
+      });
+      coinRainEl.appendChild(coin);
+    });
+    const t = setTimeout(() => { coinRainEl.innerHTML = ''; }, COIN_RAIN_LIFETIME);
+    coinRainTimeouts.push(t);
+  }
+
+  function checkCoinRain() {
+    const rain = loadCoinRain();
+    if (!rain) return;
+    const age = Date.now() - rain.spawnedAt;
+    if (age > COIN_RAIN_LIFETIME) return;
+    setTimeout(() => spawnCoinRain(rain.id), 600);
+  }
+
+  /* ====================== CROSS-TAB SYNC ====================== */
+  window.addEventListener('storage', (e) => {
+    if (e.key === BANS_KEY) {
+      bans = loadBans();
+      if (currentUser && isBanned(currentUser.username)) {
+        showBannedScreen(currentUser.username);
+        currentUser = null;
+      }
+      if (appWindows.ownerpanel.classList.contains('visible')) renderOwnerPanel();
+    }
+    if (e.key === COIN_RAIN_KEY) {
+      const rain = loadCoinRain();
+      if (rain && currentUser) {
+        const age = Date.now() - rain.spawnedAt;
+        if (age < COIN_RAIN_LIFETIME) spawnCoinRain(rain.id);
+      }
+    }
+    if (e.key === COINS_KEY) { coins = loadCoins(); refreshUserUI(); if (appWindows.roulette.classList.contains('visible')) updateRouletteUI(); if (appWindows.ownerpanel.classList.contains('visible')) renderOwnerPanel(); }
+    if (e.key === ROLES_KEY) { rolesOwned = loadRolesOwned(); refreshUserUI(); if (appWindows.settings.classList.contains('visible')) renderProfileSettings(); if (appWindows.linkchat.classList.contains('visible')) renderLinkChat(); if (appWindows.ownerpanel.classList.contains('visible')) renderOwnerPanel(); }
+    if (e.key === PROFILES_KEY) { profiles = loadProfiles(); refreshUserUI(); if (appWindows.linkchat.classList.contains('visible')) renderLinkChat(); }
+    if (e.key === GAMES_KEY) { games = loadGames(); if (appWindows.store.classList.contains('visible')) { renderStore(); renderOwned(); } if (desktop.classList.contains('visible')) renderDesktopIcons(); }
+    if (e.key === PARTNER_KEY) { partneredApps = loadPartnered(); if (appWindows.store.classList.contains('visible')) { renderPartnered(); renderOwned(); } if (desktop.classList.contains('visible')) renderDesktopIcons(); }
+    if (e.key === INSTALLED_KEY) { installed = loadInstalled(); if (desktop.classList.contains('visible')) renderDesktopIcons(); if (appWindows.store.classList.contains('visible')) { renderStore(); renderOwned(); } }
+    if (e.key === SOUNDS_KEY) { sounds = loadSounds(); if (appWindows.soundboard.classList.contains('visible')) renderSoundboard(); }
+    if (e.key === CHAT_KEY) { chatMessages = loadChat(); if (appWindows.linkchat.classList.contains('visible') && activeChannel === 'global') renderGlobalChatMain($('discord-main')); }
+    if (e.key === FRIENDS_KEY) { friends = loadFriends(); if (appWindows.linkchat.classList.contains('visible')) renderLinkChat(); }
+    if (e.key === REQUESTS_KEY) { friendRequests = loadRequests(); if (appWindows.linkchat.classList.contains('visible')) renderLinkChat(); }
+    if (e.key === DMS_KEY) { dms = loadDMs(); if (appWindows.linkchat.classList.contains('visible') && activeChannel === 'dm') renderDMMain($('discord-main')); }
+    if (e.key === OWNED_KEY) { owned = loadOwned(); if (appWindows.store.classList.contains('visible')) { renderStore(); renderOwned(); } if (desktop.classList.contains('visible')) renderDesktopIcons(); }
+  });
+
+  /* ====================== LINKCHAT ====================== */
+  let activeServer = 'home';
+  let activeChannel = null;
+  let activeDMUser = null;
+
+  document.querySelectorAll('.server-icon').forEach(icon => {
+    icon.addEventListener('click', () => {
+      document.querySelectorAll('.server-icon').forEach(i => i.classList.remove('active'));
+      icon.classList.add('active');
+      activeServer = icon.dataset.server;
+      activeDMUser = null;
+      if (activeServer === 'home') { activeChannel = 'friends'; $('discord-server-title').querySelector('span').textContent = 'Home'; }
+      else { activeChannel = 'global'; $('discord-server-title').querySelector('span').textContent = 'Global Chat'; }
+      renderLinkChat();
+    });
+  });
+
+  $('lc-add-friend').addEventListener('click', () => {
+    $('add-friend-modal').classList.add('visible');
+    $('add-friend-input').focus();
+  });
+  $('lc-settings-btn').addEventListener('click', () => {
+    openApp('settings');
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    document.querySelector('.sidebar-item[data-section="profile"]').classList.add('active');
+    document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+    $('section-profile').classList.add('active');
+    renderProfileSettings();
+  });
+  $('add-friend-cancel').addEventListener('click', () => $('add-friend-modal').classList.remove('visible'));
+  $('add-friend-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendFriendRequest(); } });
+  $('add-friend-send').addEventListener('click', sendFriendRequest);
+
+  function sendFriendRequest() {
+    if (!currentUser) return;
+    const target = $('add-friend-input').value.trim().toLowerCase();
+    if (!target) return;
+    if (target === currentUser.username) return showToast("You can't add yourself");
+    if (!users.has(target)) return showToast(`No user named "${target}"`);
+    if ((friends[currentUser.username] || []).includes(target)) return showToast(`${target} is already your friend`);
+    const pending = friendRequests[target] || [];
+    if (pending.includes(currentUser.username)) return showToast('Request already sent');
+    friendRequests[target] = [...pending, currentUser.username];
+    saveRequests(friendRequests);
+    $('add-friend-input').value = '';
+    $('add-friend-modal').classList.remove('visible');
+    showToast(`Friend request sent to ${target}`);
+    renderLinkChat();
+  }
+
+  function acceptRequest(fromUser) {
+    if (!currentUser) return;
+    const me = currentUser.username;
+    friends[me] = friends[me] || [];
+    friends[fromUser] = friends[fromUser] || [];
+    if (!friends[me].includes(fromUser)) friends[me].push(fromUser);
+    if (!friends[fromUser].includes(me)) friends[fromUser].push(me);
+    saveFriends(friends);
+    friendRequests[me] = (friendRequests[me] || []).filter(u => u !== fromUser);
+    saveRequests(friendRequests);
+    showToast(`You and ${fromUser} are now friends!`);
+    renderLinkChat();
+  }
+
+  function declineRequest(fromUser) {
+    if (!currentUser) return;
+    const me = currentUser.username;
+    friendRequests[me] = (friendRequests[me] || []).filter(u => u !== fromUser);
+    saveRequests(friendRequests);
+    renderLinkChat();
+  }
+
+  function renderLinkChat() {
+    if (!currentUser) return;
+    refreshUserUI();
+    renderChannelList();
+    renderMainArea();
+  }
+
+  function renderChannelList() {
+    const list = $('discord-channel-list');
+    list.innerHTML = '';
+    const me = currentUser.username;
+
+    if (activeServer === 'home') {
+      const cat1 = document.createElement('div');
+      cat1.className = 'discord-channel-category';
+      cat1.textContent = 'Direct Messages';
+      list.appendChild(cat1);
+      const friendsList = friends[me] || [];
+      if (!friendsList.length) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'padding:10px 18px;color:#6d6f78;font-size:12.5px';
+        empty.textContent = 'No friends yet. Click the + icon to add one.';
+        list.appendChild(empty);
+      }
+      friendsList.sort().forEach(f => {
+        const prof = getProfile(f);
+        const initial = (prof.displayName || f).charAt(0).toUpperCase();
+        const avatarContent = prof.pfp ? `<img src="${prof.pfp}" alt="">` : initial;
+        const item = document.createElement('div');
+        item.className = 'discord-channel' + (activeChannel === 'dm' && activeDMUser === f ? ' active' : '');
+        item.innerHTML = `<div class="dm-avatar-small">${avatarContent}</div><span>${escapeHtml(prof.displayName || f)}</span>`;
+        item.addEventListener('click', () => { activeChannel = 'dm'; activeDMUser = f; renderLinkChat(); });
+        list.appendChild(item);
+      });
+      const reqs = friendRequests[me] || [];
+      const cat2 = document.createElement('div');
+      cat2.className = 'discord-channel-category';
+      cat2.innerHTML = `Pending Requests ${reqs.length ? `<span class="request-badge">${reqs.length}</span>` : ''}`;
+      list.appendChild(cat2);
+      if (!reqs.length) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'padding:8px 18px;color:#6d6f78;font-size:12.5px';
+        empty.textContent = 'No pending requests.';
+        list.appendChild(empty);
+      } else {
+        reqs.forEach(u => {
+          const prof = getProfile(u);
+          const item = document.createElement('div');
+          item.className = 'discord-channel';
+          item.style.cssText = 'justify-content:space-between;gap:8px';
+          item.innerHTML = `<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(prof.displayName || u)}</span><div style="display:flex;gap:4px;flex-shrink:0"><button class="accept-btn" type="button" style="background:#2ecc71;border:none;color:#fff;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer">✓</button><button class="decline-btn" type="button" style="background:rgba(255,255,255,.1);border:none;color:#ccc;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer">✕</button></div>`;
+          item.querySelector('.accept-btn').addEventListener('click', (e) => { e.stopPropagation(); acceptRequest(u); });
+          item.querySelector('.decline-btn').addEventListener('click', (e) => { e.stopPropagation(); declineRequest(u); });
+          list.appendChild(item);
+        });
+      }
+    } else {
+      const cat = document.createElement('div');
+      cat.className = 'discord-channel-category';
+      cat.textContent = 'Text Channels';
+      list.appendChild(cat);
+      const item = document.createElement('div');
+      item.className = 'discord-channel' + (activeChannel === 'global' ? ' active' : '');
+      item.innerHTML = '<span class="hash">#</span><span>global</span>';
+      item.addEventListener('click', () => { activeChannel = 'global'; renderLinkChat(); });
+      list.appendChild(item);
+    }
+  }
+
+  function renderMainArea() {
+    const main = $('discord-main');
+    if (activeServer === 'home' && activeChannel === 'dm' && activeDMUser) renderDMMain(main);
+    else if (activeChannel === 'global') renderGlobalChatMain(main);
+    else main.innerHTML = `<div class="discord-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div>Select a friend or channel to start chatting</div></div>`;
+  }
+
+  function renderDMMain(main) {
+    const me = currentUser.username;
+    const other = activeDMUser;
+    const prof = getProfile(other);
+    const key = dmKey(me, other);
+    const messages = dms[key] || [];
+    const initial = (prof.displayName || other).charAt(0).toUpperCase();
+    const avatarHTML = prof.pfp ? `<img src="${prof.pfp}" alt="">` : initial;
+    main.innerHTML = `
+      <div class="discord-main-header">
+        <div class="dm-avatar-small" style="width:28px;height:28px;font-size:13px">${avatarHTML}</div>
+        <h3>${escapeHtml(prof.displayName || other)}</h3>
+        <span class="topic">Direct message</span>
+      </div>
+      <div class="discord-messages" id="dm-messages"></div>
+      <div class="discord-input-area"><div class="discord-input-box">
+        <input type="text" id="dm-input" placeholder="Message @${escapeHtml(prof.displayName || other)}" maxlength="500">
+        <button class="send-btn" id="dm-send" title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+      </div></div>`;
+    const dmList = $('dm-messages');
+    if (!messages.length) {
+      dmList.innerHTML = `<div style="text-align:center;color:#949ba4;padding:40px 20px;font-size:13px">This is the beginning of your direct message history with <strong style="color:#fff">${escapeHtml(prof.displayName || other)}</strong>.</div>`;
+    } else {
+      messages.forEach(m => {
+        const fromProf = getProfile(m.from);
+        const fInitial = (fromProf.displayName || m.from).charAt(0).toUpperCase();
+        const fAvatar = fromProf.pfp ? `<img src="${fromProf.pfp}" alt="">` : fInitial;
+        const div = document.createElement('div');
+        div.className = 'discord-msg';
+        div.innerHTML = `
+          <div class="msg-avatar" data-user="${escapeHtml(m.from)}">${fAvatar}</div>
+          <div class="msg-body">
+            <div class="msg-header">
+              <span class="msg-name" data-user="${escapeHtml(m.from)}">${escapeHtml(fromProf.displayName || m.from)}</span>
+              ${equippedRoleBadges(m.from)}
+              <span class="msg-time">${formatTime(m.time)}</span>
+            </div>
+            <div class="msg-text">${escapeHtml(m.text)}</div>
+          </div>`;
+        dmList.appendChild(div);
+      });
+      dmList.scrollTop = dmList.scrollHeight;
+    }
+    dmList.querySelectorAll('.msg-avatar, .msg-name').forEach(el => {
+      el.addEventListener('click', () => {
+        const u = el.dataset.user;
+        if (u) openProfileModal(u);
+      });
+    });
+    $('dm-input').focus();
+    $('dm-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendDM(); } });
+    $('dm-send').addEventListener('click', sendDM);
+  }
+
+  function sendDM() {
+    if (!currentUser || !activeDMUser) return;
+    const me = currentUser.username;
+    const other = activeDMUser;
+    const input = $('dm-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    const key = dmKey(me, other);
+    if (!dms[key]) dms[key] = [];
+    dms[key].push({ from: me, text, time: Date.now() });
+    saveDMs(dms);
+    input.value = '';
+    renderDMMain($('discord-main'));
+  }
+
+  function renderGlobalChatMain(main) {
+    main.innerHTML = `
+      <div class="discord-main-header">
+        <span class="hash">#</span><h3>global</h3>
+        <span class="topic">Everyone can talk here</span>
+      </div>
+      <div class="discord-messages" id="global-messages"></div>
+      <div class="discord-input-area"><div class="discord-input-box">
+        <input type="text" id="global-input" placeholder="Message #global" maxlength="500">
+        <button class="send-btn" id="global-send" title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+      </div></div>`;
+    const list = $('global-messages');
+    if (!chatMessages.length) {
+      list.innerHTML = '<div style="text-align:center;color:#949ba4;padding:40px 20px;font-size:13px">No messages yet. Say hi!</div>';
+    } else {
+      chatMessages.forEach(msg => {
+        const div = document.createElement('div');
+        if (msg.system) {
+          div.className = 'discord-msg system';
+          div.innerHTML = `<div class="msg-text">${escapeHtml(msg.text)}</div>`;
+        } else {
+          const prof = getProfile(msg.username);
+          const isOwnerMsg = getRolesFor(msg.username).includes('Owner');
+          div.className = 'discord-msg' + (isOwnerMsg ? ' owner' : '');
+          const initial = (prof.displayName || msg.username).charAt(0).toUpperCase();
+          const avatar = prof.pfp ? `<img src="${prof.pfp}" alt="">` : initial;
+          div.innerHTML = `
+            <div class="msg-avatar" data-user="${escapeHtml(msg.username)}">${avatar}</div>
+            <div class="msg-body">
+              <div class="msg-header">
+                <span class="msg-name" data-user="${escapeHtml(msg.username)}">${escapeHtml(prof.displayName || msg.username)}</span>
+                ${equippedRoleBadges(msg.username)}
+                <span class="msg-time">${formatTime(msg.time)}</span>
+              </div>
+              <div class="msg-text">${escapeHtml(msg.text)}</div>
+            </div>`;
+        }
+        list.appendChild(div);
+      });
+      list.scrollTop = list.scrollHeight;
+    }
+    list.querySelectorAll('.msg-avatar, .msg-name').forEach(el => {
+      el.addEventListener('click', () => {
+        const u = el.dataset.user;
+        if (u) openProfileModal(u);
+      });
+    });
+    $('global-input').focus();
+    $('global-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendGlobalMessage(); } });
+    $('global-send').addEventListener('click', sendGlobalMessage);
+  }
+
+  function sendGlobalMessage() {
+    if (!currentUser) return;
+    const input = $('global-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    chatMessages.push({
+      id: 'm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+      username: currentUser.username,
+      text, time: Date.now(),
+      owner: isOwner(),
+      system: false
+    });
+    saveChat(chatMessages);
+    input.value = '';
+    renderGlobalChatMain($('discord-main'));
+  }
+
+  /* ====================== APP VIEWER ====================== */
+  const gameViewer = $('game-viewer');
+  const gvFrame = $('gv-frame');
+  const gvName = $('gv-name');
+  const gvIcon = $('gv-icon');
+
+  function launchApp(item) {
+    gvName.textContent = item.title;
+    if (item.image) { gvIcon.src = item.image; gvIcon.style.display = 'block'; }
+    else { gvIcon.style.display = 'none'; }
+    gvFrame.src = item.link;
+    gameViewer.classList.add('visible');
+  }
+  $('gv-close').addEventListener('click', () => {
+    gameViewer.classList.remove('visible');
+    gvFrame.src = 'about:blank';
+  });
+
+  /* ====================== AUTO RESUME ====================== */
+  try {
+    const savedSession = JSON.parse(localStorage.getItem(SESSION_KEY));
+    if (savedSession && savedSession.username) {
+      if (isBanned(savedSession.username)) {
+        showBannedScreen(savedSession.username);
+      } else if (users.has(savedSession.username.toLowerCase())) {
+        enterDesktop(savedSession.username, savedSession.email || '', savedSession.accountType || 'Local account');
+      }
+    }
+  } catch(e){}
+
+  loginUser.focus();
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (gameViewer.classList.contains('visible')) $('gv-close').click();
+      else if (profileModal.classList.contains('visible')) profileModal.classList.remove('visible');
+      else if (sbModal.classList.contains('visible')) sbModal.classList.remove('visible');
+      else if (startMenu.classList.contains('visible')) startMenu.classList.remove('visible');
+      else if ($('add-friend-modal').classList.contains('visible')) $('add-friend-modal').classList.remove('visible');
+      else if ($('buy-overlay').classList.contains('visible')) $('buy-cancel').click();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
